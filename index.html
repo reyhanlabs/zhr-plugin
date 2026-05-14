@@ -419,22 +419,9 @@ tbody td{padding:9px 11px;font-size:12px;vertical-align:top}
               <input type="date" id="f-tgl-aktif">
             </div>
           </div>
-          <div style="margin:6px 0 10px;padding:12px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:10px">
-            <div style="font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px">🔑 Informasi Registrasi</div>
-            <div class="form-row col3">
-              <div class="form-group" style="margin-bottom:0">
-                <label class="form-label">ID Komputer</label>
-                <input type="text" id="f-id" placeholder="1234567890">
-              </div>
-              <div class="form-group" style="margin-bottom:0">
-                <label class="form-label">No. Serial</label>
-                <input type="text" id="f-serial" placeholder="987654321">
-              </div>
-              <div class="form-group" style="margin-bottom:0">
-                <label class="form-label">Kode Registrasi</label>
-                <input type="text" id="f-code" placeholder="ABCD 1234 EFGH 5678 ...">
-              </div>
-            </div>
+          <div class="form-group">
+            <label class="form-label">🔑 Informasi Registrasi</label>
+            <textarea id="f-reginfo" placeholder="ID Komputer, No. Serial, Kode Registrasi, atau info lainnya..." style="min-height:80px"></textarea>
           </div>
           <div class="form-group">
             <label class="form-label">Catatan / Keterangan</label>
@@ -633,13 +620,9 @@ tbody td{padding:9px 11px;font-size:12px;vertical-align:top}
         <div class="form-group"><label class="form-label">Tgl. Registrasi</label><input type="date" id="m-tgl-reg"></div>
         <div class="form-group"><label class="form-label">Aktif Hingga</label><input type="date" id="m-tgl-aktif"></div>
       </div>
-      <div style="margin:6px 0 10px;padding:12px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:10px">
-        <div style="font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px">🔑 Informasi Registrasi</div>
-        <div class="form-row col3">
-          <div class="form-group" style="margin-bottom:0"><label class="form-label">ID Komputer</label><input type="text" id="m-id"></div>
-          <div class="form-group" style="margin-bottom:0"><label class="form-label">No. Serial</label><input type="text" id="m-serial"></div>
-          <div class="form-group" style="margin-bottom:0"><label class="form-label">Kode Registrasi</label><input type="text" id="m-code"></div>
-        </div>
+      <div class="form-group">
+        <label class="form-label">🔑 Informasi Registrasi</label>
+        <textarea id="m-reginfo" placeholder="ID Komputer, No. Serial, Kode Registrasi, atau info lainnya..." style="min-height:80px"></textarea>
       </div>
       <div class="form-group"><label class="form-label">Catatan</label><textarea id="m-catatan"></textarea></div>
     </div>
@@ -1000,7 +983,7 @@ window.removeMsTag=removeMsTag;
 
 // ========== FORM ==========
 function resetForm(){
-  ['f-nama','f-invoice','f-id','f-serial','f-code','f-catatan'].forEach(id=>{
+  ['f-nama','f-invoice','f-reginfo','f-catatan'].forEach(id=>{
     const el=document.getElementById(id); if(el) el.value='';
   });
   document.getElementById('f-tgl-reg').value=new Date().toISOString().split('T')[0];
@@ -1024,9 +1007,9 @@ async function saveRecord(){
     nama, invoice: document.getElementById('f-invoice').value.trim(),
     paket: selectedPaketsForm.join(', '),
     tglReg, tglAktif,
-    idKomp: document.getElementById('f-id').value.trim(),
-    serial: document.getElementById('f-serial').value.trim(),
-    code: document.getElementById('f-code').value.trim(),
+    idKomp: '',
+    serial: '',
+    code: document.getElementById('f-reginfo').value.trim(),
     catatan: document.getElementById('f-catatan').value.trim(),
     userInput: currentUser?.displayName||currentUser?.email||'–',
     userEmail: currentUser?.email||'–',
@@ -1137,9 +1120,12 @@ function openEdit(fid){
   document.getElementById('m-invoice').value=r.invoice||'';
   document.getElementById('m-tgl-reg').value=r.tglReg||'';
   document.getElementById('m-tgl-aktif').value=r.tglAktif||'';
-  document.getElementById('m-id').value=r.idKomp||'';
-  document.getElementById('m-serial').value=r.serial||'';
-  document.getElementById('m-code').value=r.code||'';
+  // Gabungkan idKomp, serial, code ke satu field
+  const parts=[];
+  if(r.idKomp) parts.push(r.idKomp);
+  if(r.serial) parts.push(r.serial);
+  if(r.code) parts.push(r.code);
+  document.getElementById('m-reginfo').value=parts.join('\n');
   document.getElementById('m-catatan').value=r.catatan||'';
   document.getElementById('m-user-input').value=r.userInput||'–';
   // set multiselect
@@ -1163,9 +1149,9 @@ async function updateRecord(){
       paket: selectedPaketsModal.join(', ')||document.getElementById('m-paket').value,
       tglReg: document.getElementById('m-tgl-reg').value,
       tglAktif: document.getElementById('m-tgl-aktif').value,
-      idKomp: document.getElementById('m-id').value.trim(),
-      serial: document.getElementById('m-serial').value.trim(),
-      code: document.getElementById('m-code').value.trim(),
+      idKomp: '',
+      serial: '',
+      code: document.getElementById('m-reginfo').value.trim(),
       catatan: document.getElementById('m-catatan').value.trim(),
       updatedAt: serverTimestamp(),
       updatedBy: currentUser?.email||'–'
