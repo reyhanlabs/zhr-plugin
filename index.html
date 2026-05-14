@@ -483,7 +483,7 @@ tbody td{padding:9px 11px;font-size:12px;vertical-align:top}
                 <tr>
                   <th>No</th><th>Nama Perusahaan</th><th>Invoice</th><th>Paket Plugin</th>
                   <th>Tgl Reg</th><th>Aktif Hingga</th><th>Status</th><th>User Input</th>
-                  <th>Data Teknis</th><th>Catatan</th><th>Aksi</th>
+                  <th>Informasi Registrasi</th><th>Catatan</th><th>Aksi</th>
                 </tr>
               </thead>
               <tbody id="tbl-body"></tbody>
@@ -1101,7 +1101,7 @@ function renderList(){
       <td>${statusBadge(getStatus(r.tglAktif))}</td>
       <td style="font-size:11px;color:var(--text2)">${r.userInput||'–'}</td>
       <td style="font-size:10px;font-family:monospace;color:var(--text2);max-width:180px;word-break:break-all">
-        ${r.idKomp?`ID:${r.idKomp}<br>`:''}${r.serial?`SN:${r.serial}<br>`:''}${r.code?`<span style="font-size:9px">${r.code}</span>`:''}
+        ${r.idKomp?`<span style="color:var(--text3);font-size:9px">ID Komputer:</span><br>${r.idKomp}<br>`:''}${r.serial?`<span style="color:var(--text3);font-size:9px">No. Serial:</span><br>${r.serial}<br>`:''}${r.code?`<span style="color:var(--text3);font-size:9px">Kode Reg:</span><br><span style="font-size:9px">${r.code}</span>`:''}
       </td>
       <td style="font-size:11px;color:var(--text2);max-width:100px">${r.catatan||''}</td>
       <td><div style="display:flex;gap:3px">
@@ -1497,8 +1497,8 @@ window.importExcelToFirestore=importExcelToFirestore;
 // ========== EXPORT CSV ==========
 function exportCSV(){
   const data=getFilteredData();
-  const headers=['No','Nama Perusahaan','Invoice','Paket Plugin','Tgl Registrasi','Aktif Hingga','Status','User Input','ID Komputer','No Serial','Kode Registrasi','Catatan'];
-  const rows=data.map((r,i)=>[i+1,`"${r.nama}"`,r.invoice,`"${r.paket}"`,r.tglReg,r.tglAktif,getStatus(r.tglAktif),`"${r.userInput||''}"`,r.idKomp,r.serial,`"${r.code}"`,`"${r.catatan||''}"`]);
+  const headers=['No','Nama Perusahaan','Invoice','Paket Plugin','Tgl Registrasi','Aktif Hingga','Status','User Input','Informasi Registrasi','Catatan'];
+  const rows=data.map((r,i)=>[i+1,`"${r.nama}"`,r.invoice,`"${r.paket}"`,r.tglReg,r.tglAktif,getStatus(r.tglAktif),`"${r.userInput||''}"`,`"ID: ${r.idKomp||''} | SN: ${r.serial||''} | Code: ${r.code||''}"`,`"${r.catatan||''}"`]);
   const csv=[headers,...rows].map(r=>r.join(',')).join('\n');
   const a=document.createElement('a');
   a.href='data:text/csv;charset=utf-8,\uFEFF'+encodeURIComponent(csv);
