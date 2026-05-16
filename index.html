@@ -306,6 +306,11 @@ tbody td{padding:9px 11px;font-size:12px;vertical-align:top}
   </div>
 
   <div class="nav-section-label">Sistem</div>
+  <div class="nav-item" onclick="gotoPage('panduan',this)" id="nav-panduan">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+    <span class="nav-label">Panduan Penggunaan</span>
+    <div class="nav-tooltip">Panduan</div>
+  </div>
   <div class="nav-item" onclick="gotoPage('settings',this)" id="nav-settings">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93A10 10 0 0 0 4.93 19.07M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
     <span class="nav-label">Pengaturan</span>
@@ -524,6 +529,642 @@ tbody td{padding:9px 11px;font-size:12px;vertical-align:top}
           </div>
         </div>
       </div>
+    </div>
+
+    <!-- PANDUAN PENGGUNAAN -->
+    <div id="page-panduan" class="page">
+
+      <!-- Panduan styles -->
+      <style>
+        .guide-hero{background:linear-gradient(135deg,var(--primary-dark) 0%,var(--primary) 100%);border-radius:14px;padding:28px 32px;margin-bottom:24px;color:#fff;display:flex;align-items:center;gap:20px}
+        .guide-hero-icon{font-size:48px;flex-shrink:0}
+        .guide-hero h1{font-size:20px;font-weight:700;margin-bottom:6px}
+        .guide-hero p{font-size:13px;opacity:.85;line-height:1.6;max-width:580px}
+        .guide-version{display:inline-block;background:rgba(255,255,255,.2);border-radius:20px;padding:2px 12px;font-size:11px;font-weight:600;margin-top:8px}
+
+        .guide-tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:20px}
+        .guide-tab{padding:8px 16px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;border:1.5px solid var(--border2);background:var(--surface);color:var(--text2);transition:all .15s}
+        .guide-tab:hover{border-color:var(--primary);color:var(--primary)}
+        .guide-tab.active{background:var(--primary);color:#fff;border-color:var(--primary)}
+
+        .guide-section{display:none}
+        .guide-section.active{display:block}
+
+        .guide-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;margin-bottom:16px;overflow:hidden;box-shadow:var(--shadow)}
+        .guide-card-header{padding:14px 18px;background:var(--surface2);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;cursor:pointer;user-select:none}
+        .guide-card-header:hover{background:var(--primary-light)}
+        .guide-card-icon{font-size:18px;flex-shrink:0}
+        .guide-card-title{font-size:13px;font-weight:700;flex:1}
+        .guide-card-badge{font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;background:var(--primary-light);color:var(--primary)}
+        .guide-card-badge.admin{background:#fef3c7;color:#d97706}
+        .guide-card-chevron{transition:transform .25s;color:var(--text3)}
+        .guide-card-body{padding:18px;display:block}
+        .guide-card.collapsed .guide-card-body{display:none}
+        .guide-card.collapsed .guide-card-chevron{transform:rotate(-90deg)}
+
+        .guide-steps{list-style:none;padding:0;margin:0}
+        .guide-step{display:flex;gap:12px;margin-bottom:14px;align-items:flex-start}
+        .guide-step:last-child{margin-bottom:0}
+        .guide-step-num{width:24px;height:24px;border-radius:50%;background:var(--primary);color:#fff;font-size:11px;font-weight:700;flex-shrink:0;display:flex;align-items:center;justify-content:center}
+        .guide-step-body{flex:1}
+        .guide-step-title{font-size:12px;font-weight:700;margin-bottom:3px;color:var(--text)}
+        .guide-step-desc{font-size:12px;color:var(--text2);line-height:1.6}
+
+        .guide-note{background:var(--warn-bg);border-left:3px solid var(--warn);border-radius:0 8px 8px 0;padding:10px 14px;margin:12px 0;font-size:12px;color:var(--text2);line-height:1.6}
+        .guide-note.info{background:var(--primary-light);border-color:var(--primary)}
+        .guide-note.danger{background:var(--danger-bg);border-color:var(--danger)}
+        .guide-note.success{background:var(--success-bg);border-color:var(--success)}
+
+        .guide-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:12px 0}
+        .guide-feat{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:12px 14px}
+        .guide-feat-icon{font-size:20px;margin-bottom:6px}
+        .guide-feat-title{font-size:12px;font-weight:700;margin-bottom:3px}
+        .guide-feat-desc{font-size:11px;color:var(--text2);line-height:1.5}
+
+        .guide-table{width:100%;border-collapse:collapse;font-size:12px;margin:12px 0}
+        .guide-table th{background:var(--surface2);font-weight:700;padding:8px 12px;border:1px solid var(--border);text-align:left;color:var(--text2);text-transform:uppercase;letter-spacing:.04em;font-size:11px}
+        .guide-table td{padding:8px 12px;border:1px solid var(--border);color:var(--text);vertical-align:top}
+        .guide-table tr:hover td{background:var(--surface2)}
+
+        .guide-shortcut{display:inline-flex;align-items:center;gap:4px}
+        .kbd{background:var(--surface2);border:1px solid var(--border2);border-radius:4px;padding:2px 7px;font-size:11px;font-weight:700;font-family:monospace;color:var(--text)}
+
+        .guide-role-row{display:flex;gap:8px;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--border)}
+        .guide-role-row:last-child{border-bottom:none}
+        .guide-role-badge{flex-shrink:0;width:52px;text-align:center}
+        .guide-role-desc{flex:1;font-size:12px;color:var(--text2);line-height:1.5}
+
+        .guide-faq-q{font-size:12px;font-weight:700;color:var(--primary);margin-bottom:4px}
+        .guide-faq-a{font-size:12px;color:var(--text2);line-height:1.6;margin-bottom:12px}
+        .guide-faq-a:last-child{margin-bottom:0}
+
+        .guide-toc{background:var(--surface2);border-radius:10px;padding:16px;margin-bottom:20px;display:flex;gap:12px;flex-wrap:wrap}
+        .guide-toc-item{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:var(--primary);cursor:pointer;padding:4px 10px;border-radius:6px;background:var(--surface);border:1px solid var(--border);transition:all .15s}
+        .guide-toc-item:hover{background:var(--primary);color:#fff;border-color:var(--primary)}
+      </style>
+
+      <!-- Hero -->
+      <div class="guide-hero">
+        <div class="guide-hero-icon">📖</div>
+        <div>
+          <h1>Panduan Penggunaan — Plugin Registrasi</h1>
+          <p>Dokumentasi lengkap cara menggunakan aplikasi Sistem Manajemen Registrasi Plugin Transaksi Customer. Ikuti langkah-langkah di bawah untuk mengoperasikan sistem dengan benar.</p>
+          <span class="guide-version">Versi App 2.0 · Firebase Edition</span>
+        </div>
+      </div>
+
+      <!-- Tabs -->
+      <div class="guide-tabs">
+        <div class="guide-tab active" onclick="switchGuideTab('mulai',this)">🚀 Memulai</div>
+        <div class="guide-tab" onclick="switchGuideTab('fitur',this)">⚙️ Fitur Utama</div>
+        <div class="guide-tab" onclick="switchGuideTab('data',this)">📋 Kelola Data</div>
+        <div class="guide-tab" onclick="switchGuideTab('laporan',this)">📊 Laporan</div>
+        <div class="guide-tab" onclick="switchGuideTab('sistem',this)">🔧 Sistem & Admin</div>
+        <div class="guide-tab" onclick="switchGuideTab('faq',this)">❓ FAQ</div>
+      </div>
+
+      <!-- ===== TAB: MULAI ===== -->
+      <div id="gsec-mulai" class="guide-section active">
+
+        <!-- Fitur Ringkas -->
+        <div class="guide-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:20px">
+          <div class="guide-feat">
+            <div class="guide-feat-icon">🔐</div>
+            <div class="guide-feat-title">Login Aman</div>
+            <div class="guide-feat-desc">Autentikasi via Google. Hanya email terdaftar yang dapat masuk ke sistem.</div>
+          </div>
+          <div class="guide-feat">
+            <div class="guide-feat-icon">☁️</div>
+            <div class="guide-feat-title">Realtime Cloud</div>
+            <div class="guide-feat-desc">Data tersimpan di Firebase Firestore dan tersinkron secara real-time.</div>
+          </div>
+          <div class="guide-feat">
+            <div class="guide-feat-icon">👥</div>
+            <div class="guide-feat-title">Multi-User</div>
+            <div class="guide-feat-desc">Sistem mendukung banyak pengguna dengan role Admin dan User biasa.</div>
+          </div>
+        </div>
+
+        <!-- Cara Login -->
+        <div class="guide-card">
+          <div class="guide-card-header" onclick="toggleGuideCard(this)">
+            <span class="guide-card-icon">🔑</span>
+            <span class="guide-card-title">Cara Login ke Sistem</span>
+            <span class="guide-card-chevron">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14"><polyline points="6 9 12 15 18 9"/></svg>
+            </span>
+          </div>
+          <div class="guide-card-body">
+            <ol class="guide-steps">
+              <li class="guide-step">
+                <div class="guide-step-num">1</div>
+                <div class="guide-step-body">
+                  <div class="guide-step-title">Buka Aplikasi</div>
+                  <div class="guide-step-desc">Akses URL aplikasi melalui browser (Chrome atau Edge direkomendasikan). Anda akan melihat halaman login dengan tombol Google.</div>
+                </div>
+              </li>
+              <li class="guide-step">
+                <div class="guide-step-num">2</div>
+                <div class="guide-step-body">
+                  <div class="guide-step-title">Klik "Login dengan Google"</div>
+                  <div class="guide-step-desc">Akan muncul popup login Google. Pilih akun Google yang sudah didaftarkan oleh Administrator ke dalam sistem whitelist.</div>
+                </div>
+              </li>
+              <li class="guide-step">
+                <div class="guide-step-num">3</div>
+                <div class="guide-step-body">
+                  <div class="guide-step-title">Verifikasi Otomatis</div>
+                  <div class="guide-step-desc">Sistem akan memverifikasi apakah email Anda terdaftar. Jika ya, Anda langsung masuk ke Dashboard. Jika tidak, akan muncul pesan "Akun tidak terdaftar."</div>
+                </div>
+              </li>
+            </ol>
+            <div class="guide-note danger">⛔ <strong>Akun ditolak?</strong> Hubungi Administrator untuk menambahkan email Anda ke daftar pengguna yang diizinkan.</div>
+          </div>
+        </div>
+
+        <!-- Navigasi -->
+        <div class="guide-card">
+          <div class="guide-card-header" onclick="toggleGuideCard(this)">
+            <span class="guide-card-icon">🧭</span>
+            <span class="guide-card-title">Navigasi Aplikasi</span>
+            <span class="guide-card-chevron">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14"><polyline points="6 9 12 15 18 9"/></svg>
+            </span>
+          </div>
+          <div class="guide-card-body">
+            <p style="font-size:12px;color:var(--text2);margin-bottom:12px">Sidebar kiri adalah menu utama navigasi. Klik ikon <strong>«»</strong> di pojok atas sidebar untuk memperkecil atau memperbesar tampilan.</p>
+            <table class="guide-table">
+              <thead><tr><th>Menu</th><th>Fungsi</th></tr></thead>
+              <tbody>
+                <tr><td>📊 Dashboard</td><td>Statistik ringkasan: total registrasi, aktif, segera habis, dan expired. Dilengkapi grafik visual.</td></tr>
+                <tr><td>📝 Input Registrasi</td><td>Form untuk menambahkan data registrasi plugin baru.</td></tr>
+                <tr><td>📋 Daftar Registrasi</td><td>Tabel semua data registrasi dengan fitur pencarian, filter, edit, dan hapus.</td></tr>
+                <tr><td>📈 Laporan &amp; Analitik</td><td>Analisis distribusi paket, trend bulanan/tahunan, dan timeline registrasi.</td></tr>
+                <tr><td>⏰ Segera Habis</td><td>Daftar plugin yang akan berakhir dalam 7, 30, 60, atau 90 hari ke depan.</td></tr>
+                <tr><td>📖 Panduan Penggunaan</td><td>Halaman dokumentasi ini.</td></tr>
+                <tr><td>⚙️ Pengaturan</td><td>Manajemen user, tema, backup/restore, dan info sistem.</td></tr>
+              </tbody>
+            </table>
+            <div class="guide-note info">💡 <strong>Shortcut Keyboard:</strong> Tekan <span class="kbd">Esc</span> untuk menutup modal/dialog yang sedang terbuka.</div>
+          </div>
+        </div>
+
+        <!-- Indikator Status -->
+        <div class="guide-card">
+          <div class="guide-card-header" onclick="toggleGuideCard(this)">
+            <span class="guide-card-icon">🔴</span>
+            <span class="guide-card-title">Memahami Indikator Status</span>
+            <span class="guide-card-chevron">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14"><polyline points="6 9 12 15 18 9"/></svg>
+            </span>
+          </div>
+          <div class="guide-card-body">
+            <table class="guide-table">
+              <thead><tr><th>Badge Status</th><th>Arti</th><th>Kondisi</th></tr></thead>
+              <tbody>
+                <tr><td><span class="badge badge-active">✓ Aktif</span></td><td>Plugin masih berlaku</td><td>Tanggal aktif &gt; hari ini + 30 hari</td></tr>
+                <tr><td><span class="badge badge-expiring">⚠ Segera Habis</span></td><td>Akan berakhir dalam waktu dekat</td><td>Sisa masa aktif ≤ 30 hari</td></tr>
+                <tr><td><span class="badge badge-expired">✕ Kadaluarsa</span></td><td>Plugin sudah tidak berlaku</td><td>Tanggal aktif sudah terlewati</td></tr>
+              </tbody>
+            </table>
+            <p style="font-size:12px;color:var(--text2);margin-top:10px">Indikator koneksi Firebase ditampilkan di topbar kanan: <strong>🟢 Online</strong> artinya terhubung ke database, <strong>🔴 Offline</strong> artinya koneksi terputus.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== TAB: FITUR UTAMA ===== -->
+      <div id="gsec-fitur" class="guide-section">
+
+        <div class="guide-card">
+          <div class="guide-card-header" onclick="toggleGuideCard(this)">
+            <span class="guide-card-icon">📊</span>
+            <span class="guide-card-title">Dashboard — Ringkasan Data</span>
+            <span class="guide-card-chevron">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14"><polyline points="6 9 12 15 18 9"/></svg>
+            </span>
+          </div>
+          <div class="guide-card-body">
+            <p style="font-size:12px;color:var(--text2);margin-bottom:12px">Dashboard menampilkan ringkasan data secara real-time. Tersedia 4 kartu statistik utama:</p>
+            <div class="guide-grid">
+              <div class="guide-feat"><div class="guide-feat-icon">📦</div><div class="guide-feat-title">Total Registrasi</div><div class="guide-feat-desc">Jumlah seluruh data yang tercatat di database.</div></div>
+              <div class="guide-feat"><div class="guide-feat-icon">✅</div><div class="guide-feat-title">Aktif</div><div class="guide-feat-desc">Jumlah plugin yang masih aktif dan tidak akan habis dalam 30 hari.</div></div>
+              <div class="guide-feat"><div class="guide-feat-icon">⚠️</div><div class="guide-feat-title">Segera Habis</div><div class="guide-feat-desc">Jumlah plugin yang akan berakhir dalam ≤ 30 hari.</div></div>
+              <div class="guide-feat"><div class="guide-feat-icon">❌</div><div class="guide-feat-title">Kadaluarsa</div><div class="guide-feat-desc">Jumlah plugin yang masa berlakunya sudah habis.</div></div>
+            </div>
+            <p style="font-size:12px;color:var(--text2);margin-top:12px">Terdapat pula grafik: <strong>Top Paket Plugin</strong>, <strong>Registrasi per Bulan</strong>, <strong>Input per User</strong>, dan widget <strong>Segera Habis (30 Hari)</strong>.</p>
+          </div>
+        </div>
+
+        <div class="guide-card">
+          <div class="guide-card-header" onclick="toggleGuideCard(this)">
+            <span class="guide-card-icon">🌙</span>
+            <span class="guide-card-title">Dark Mode &amp; Tema Tampilan</span>
+            <span class="guide-card-chevron">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14"><polyline points="6 9 12 15 18 9"/></svg>
+            </span>
+          </div>
+          <div class="guide-card-body">
+            <ol class="guide-steps">
+              <li class="guide-step">
+                <div class="guide-step-num">1</div>
+                <div class="guide-step-body">
+                  <div class="guide-step-title">Via Tombol Topbar</div>
+                  <div class="guide-step-desc">Klik tombol 🌙 di pojok kanan atas untuk toggle antara Light Mode dan Dark Mode.</div>
+                </div>
+              </li>
+              <li class="guide-step">
+                <div class="guide-step-num">2</div>
+                <div class="guide-step-body">
+                  <div class="guide-step-title">Via Pengaturan</div>
+                  <div class="guide-step-desc">Masuk ke menu <strong>Pengaturan → Tampilan → Dark Mode</strong>, lalu klik toggle.</div>
+                </div>
+              </li>
+            </ol>
+            <div class="guide-note success">✅ Preferensi tema tersimpan otomatis di browser (localStorage). Tidak perlu diatur ulang setiap kali buka aplikasi.</div>
+          </div>
+        </div>
+
+        <div class="guide-card">
+          <div class="guide-card-header" onclick="toggleGuideCard(this)">
+            <span class="guide-card-icon">⬇️</span>
+            <span class="guide-card-title">Export Data ke CSV</span>
+            <span class="guide-card-chevron">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14"><polyline points="6 9 12 15 18 9"/></svg>
+            </span>
+          </div>
+          <div class="guide-card-body">
+            <ol class="guide-steps">
+              <li class="guide-step">
+                <div class="guide-step-num">1</div>
+                <div class="guide-step-body">
+                  <div class="guide-step-title">Buka Daftar Registrasi</div>
+                  <div class="guide-step-desc">Klik menu <strong>Daftar Registrasi</strong> di sidebar.</div>
+                </div>
+              </li>
+              <li class="guide-step">
+                <div class="guide-step-num">2</div>
+                <div class="guide-step-body">
+                  <div class="guide-step-title">Filter Data (opsional)</div>
+                  <div class="guide-step-desc">Gunakan kotak pencarian atau filter status untuk mempersempit data yang ingin diekspor.</div>
+                </div>
+              </li>
+              <li class="guide-step">
+                <div class="guide-step-num">3</div>
+                <div class="guide-step-body">
+                  <div class="guide-step-title">Klik Tombol Export CSV</div>
+                  <div class="guide-step-desc">Klik tombol <strong>Export CSV</strong> di toolbar. File akan otomatis diunduh dengan nama <code>registrasi_plugin_[tanggal].csv</code>.</div>
+                </div>
+              </li>
+            </ol>
+            <div class="guide-note info">💡 CSV yang diekspor mengandung kolom: No, Nama Perusahaan, Invoice, Paket Plugin, Tgl Registrasi, Aktif Hingga, Status, User Input, Informasi Registrasi, dan Catatan.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== TAB: KELOLA DATA ===== -->
+      <div id="gsec-data" class="guide-section">
+
+        <div class="guide-card">
+          <div class="guide-card-header" onclick="toggleGuideCard(this)">
+            <span class="guide-card-icon">➕</span>
+            <span class="guide-card-title">Menambah Data Registrasi Baru</span>
+            <span class="guide-card-chevron">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14"><polyline points="6 9 12 15 18 9"/></svg>
+            </span>
+          </div>
+          <div class="guide-card-body">
+            <ol class="guide-steps">
+              <li class="guide-step">
+                <div class="guide-step-num">1</div>
+                <div class="guide-step-body">
+                  <div class="guide-step-title">Buka Form Input</div>
+                  <div class="guide-step-desc">Klik menu <strong>Input Registrasi</strong> di sidebar, atau klik tombol <strong>+ Tambah</strong> di topbar kanan atas.</div>
+                </div>
+              </li>
+              <li class="guide-step">
+                <div class="guide-step-num">2</div>
+                <div class="guide-step-body">
+                  <div class="guide-step-title">Isi Data Wajib</div>
+                  <div class="guide-step-desc">Field bertanda <span style="color:var(--danger);font-weight:700">*</span> wajib diisi: <strong>Nama Perusahaan</strong> dan <strong>Paket Plugin</strong>.</div>
+                </div>
+              </li>
+              <li class="guide-step">
+                <div class="guide-step-num">3</div>
+                <div class="guide-step-body">
+                  <div class="guide-step-title">Pilih Paket Plugin</div>
+                  <div class="guide-step-desc">Klik dropdown <strong>Paket Plugin</strong>. Anda dapat memilih <em>lebih dari satu paket</em> sekaligus (multi-select). Paket yang dipilih akan muncul sebagai tag berwarna biru.</div>
+                </div>
+              </li>
+              <li class="guide-step">
+                <div class="guide-step-num">4</div>
+                <div class="guide-step-body">
+                  <div class="guide-step-title">Isi Informasi Tambahan</div>
+                  <div class="guide-step-desc">Lengkapi No. Invoice, Tanggal Registrasi, Tanggal Aktif Hingga, ID Komputer, Serial Number, Kode Aktivasi, dan Catatan bila tersedia.</div>
+                </div>
+              </li>
+              <li class="guide-step">
+                <div class="guide-step-num">5</div>
+                <div class="guide-step-body">
+                  <div class="guide-step-title">Simpan Data</div>
+                  <div class="guide-step-desc">Klik tombol <strong>💾 Simpan Registrasi</strong>. Data langsung tersimpan ke Firestore dan muncul di Daftar Registrasi secara real-time.</div>
+                </div>
+              </li>
+            </ol>
+            <div class="guide-note">⚠️ Klik <strong>↺ Reset</strong> untuk mengosongkan semua field jika ingin memulai input baru dari awal.</div>
+          </div>
+        </div>
+
+        <div class="guide-card">
+          <div class="guide-card-header" onclick="toggleGuideCard(this)">
+            <span class="guide-card-icon">✏️</span>
+            <span class="guide-card-title">Mengedit Data Registrasi</span>
+            <span class="guide-card-chevron">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14"><polyline points="6 9 12 15 18 9"/></svg>
+            </span>
+          </div>
+          <div class="guide-card-body">
+            <ol class="guide-steps">
+              <li class="guide-step">
+                <div class="guide-step-num">1</div>
+                <div class="guide-step-body">
+                  <div class="guide-step-title">Buka Daftar Registrasi</div>
+                  <div class="guide-step-desc">Klik menu <strong>Daftar Registrasi</strong> untuk melihat semua data.</div>
+                </div>
+              </li>
+              <li class="guide-step">
+                <div class="guide-step-num">2</div>
+                <div class="guide-step-body">
+                  <div class="guide-step-title">Cari Data yang Ingin Diedit</div>
+                  <div class="guide-step-desc">Gunakan kotak <strong>Cari</strong> atau filter status untuk menemukan data yang diinginkan.</div>
+                </div>
+              </li>
+              <li class="guide-step">
+                <div class="guide-step-num">3</div>
+                <div class="guide-step-body">
+                  <div class="guide-step-title">Klik Tombol Edit</div>
+                  <div class="guide-step-desc">Klik tombol <strong>✏</strong> pada baris data yang ingin diedit. Form Input akan terbuka dengan data terisi otomatis.</div>
+                </div>
+              </li>
+              <li class="guide-step">
+                <div class="guide-step-num">4</div>
+                <div class="guide-step-body">
+                  <div class="guide-step-title">Ubah Data &amp; Simpan</div>
+                  <div class="guide-step-desc">Ubah data yang perlu diperbarui, lalu klik <strong>💾 Update Registrasi</strong>. Perubahan tersimpan langsung ke Firestore.</div>
+                </div>
+              </li>
+            </ol>
+          </div>
+        </div>
+
+        <div class="guide-card">
+          <div class="guide-card-header" onclick="toggleGuideCard(this)">
+            <span class="guide-card-icon">🗑️</span>
+            <span class="guide-card-title">Menghapus Data Registrasi</span>
+            <span class="guide-card-chevron">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14"><polyline points="6 9 12 15 18 9"/></svg>
+            </span>
+          </div>
+          <div class="guide-card-body">
+            <ol class="guide-steps">
+              <li class="guide-step">
+                <div class="guide-step-num">1</div>
+                <div class="guide-step-body">
+                  <div class="guide-step-title">Klik Tombol Hapus</div>
+                  <div class="guide-step-desc">Di Daftar Registrasi, klik tombol <strong>🗑</strong> pada baris data yang ingin dihapus.</div>
+                </div>
+              </li>
+              <li class="guide-step">
+                <div class="guide-step-num">2</div>
+                <div class="guide-step-body">
+                  <div class="guide-step-title">Konfirmasi Penghapusan</div>
+                  <div class="guide-step-desc">Dialog konfirmasi akan muncul menampilkan nama perusahaan. Klik <strong>Ya, Hapus</strong> untuk melanjutkan, atau <strong>Batal</strong> untuk membatalkan.</div>
+                </div>
+              </li>
+            </ol>
+            <div class="guide-note danger">🚨 <strong>Perhatian!</strong> Penghapusan data bersifat permanen dan tidak dapat dibatalkan. Pastikan data sudah tidak diperlukan sebelum menghapus.</div>
+          </div>
+        </div>
+
+        <div class="guide-card">
+          <div class="guide-card-header" onclick="toggleGuideCard(this)">
+            <span class="guide-card-icon">🔍</span>
+            <span class="guide-card-title">Mencari &amp; Memfilter Data</span>
+            <span class="guide-card-chevron">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14"><polyline points="6 9 12 15 18 9"/></svg>
+            </span>
+          </div>
+          <div class="guide-card-body">
+            <table class="guide-table">
+              <thead><tr><th>Fitur</th><th>Cara Penggunaan</th></tr></thead>
+              <tbody>
+                <tr><td><strong>Kotak Cari</strong></td><td>Ketik kata kunci (nama perusahaan, invoice, atau paket). Hasil muncul real-time saat mengetik.</td></tr>
+                <tr><td><strong>Filter Status</strong></td><td>Pilih dropdown: Semua Status / Aktif / Segera Habis / Kadaluarsa.</td></tr>
+                <tr><td><strong>Filter Paket</strong></td><td>Pilih dropdown paket untuk menampilkan registrasi dengan paket tertentu.</td></tr>
+                <tr><td><strong>Paginasi</strong></td><td>Data ditampilkan 15 baris per halaman. Gunakan tombol halaman di bawah tabel untuk navigasi.</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== TAB: LAPORAN ===== -->
+      <div id="gsec-laporan" class="guide-section">
+
+        <div class="guide-card">
+          <div class="guide-card-header" onclick="toggleGuideCard(this)">
+            <span class="guide-card-icon">📈</span>
+            <span class="guide-card-title">Laporan &amp; Analitik</span>
+            <span class="guide-card-chevron">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14"><polyline points="6 9 12 15 18 9"/></svg>
+            </span>
+          </div>
+          <div class="guide-card-body">
+            <p style="font-size:12px;color:var(--text2);margin-bottom:12px">Halaman Laporan menampilkan 3 jenis analitik:</p>
+            <ol class="guide-steps">
+              <li class="guide-step">
+                <div class="guide-step-num">1</div>
+                <div class="guide-step-body">
+                  <div class="guide-step-title">Distribusi Paket Plugin</div>
+                  <div class="guide-step-desc">Grafik batang yang menunjukkan jumlah registrasi per paket plugin. Berguna untuk melihat paket mana yang paling banyak digunakan.</div>
+                </div>
+              </li>
+              <li class="guide-step">
+                <div class="guide-step-num">2</div>
+                <div class="guide-step-body">
+                  <div class="guide-step-title">Registrasi per Tahun</div>
+                  <div class="guide-step-desc">Grafik yang menampilkan jumlah registrasi baru per tahun untuk melihat tren pertumbuhan.</div>
+                </div>
+              </li>
+              <li class="guide-step">
+                <div class="guide-step-num">3</div>
+                <div class="guide-step-body">
+                  <div class="guide-step-title">Timeline Registrasi</div>
+                  <div class="guide-step-desc">Grafik per bulan dalam satu tahun tertentu. Gunakan dropdown <strong>Pilih Tahun</strong> untuk mengganti tampilan tahun yang dianalisis.</div>
+                </div>
+              </li>
+            </ol>
+          </div>
+        </div>
+
+        <div class="guide-card">
+          <div class="guide-card-header" onclick="toggleGuideCard(this)">
+            <span class="guide-card-icon">⏰</span>
+            <span class="guide-card-title">Monitoring Plugin Segera Habis</span>
+            <span class="guide-card-chevron">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14"><polyline points="6 9 12 15 18 9"/></svg>
+            </span>
+          </div>
+          <div class="guide-card-body">
+            <ol class="guide-steps">
+              <li class="guide-step">
+                <div class="guide-step-num">1</div>
+                <div class="guide-step-body">
+                  <div class="guide-step-title">Buka Menu "Segera Habis"</div>
+                  <div class="guide-step-desc">Klik menu <strong>⏰ Segera Habis</strong> di sidebar untuk melihat daftar plugin yang mendekati masa berakhir.</div>
+                </div>
+              </li>
+              <li class="guide-step">
+                <div class="guide-step-num">2</div>
+                <div class="guide-step-body">
+                  <div class="guide-step-title">Pilih Rentang Waktu</div>
+                  <div class="guide-step-desc">Gunakan dropdown untuk memilih rentang: <strong>7 Hari</strong>, <strong>30 Hari</strong>, <strong>60 Hari</strong>, atau <strong>90 Hari</strong> ke depan.</div>
+                </div>
+              </li>
+              <li class="guide-step">
+                <div class="guide-step-num">3</div>
+                <div class="guide-step-body">
+                  <div class="guide-step-title">Tindak Lanjuti</div>
+                  <div class="guide-step-desc">Klik tombol edit (✏) pada baris untuk langsung memperbarui tanggal aktif atau data lainnya.</div>
+                </div>
+              </li>
+            </ol>
+            <div class="guide-note info">💡 Widget "Segera Habis 30 Hari" juga tersedia di Dashboard untuk pemantauan cepat tanpa harus berpindah halaman.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== TAB: SISTEM & ADMIN ===== -->
+      <div id="gsec-sistem" class="guide-section">
+
+        <div class="guide-card">
+          <div class="guide-card-header" onclick="toggleGuideCard(this)">
+            <span class="guide-card-icon">👥</span>
+            <span class="guide-card-title">Manajemen User &amp; Role <span class="guide-card-badge admin">Admin Only</span></span>
+            <span class="guide-card-chevron">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14"><polyline points="6 9 12 15 18 9"/></svg>
+            </span>
+          </div>
+          <div class="guide-card-body">
+            <p style="font-size:12px;color:var(--text2);margin-bottom:10px">Sistem menggunakan 2 level role:</p>
+            <div class="guide-role-row">
+              <div class="guide-role-badge"><span class="badge badge-active">Admin</span></div>
+              <div class="guide-role-desc">Akses penuh: dapat menambah/menghapus user, import data Excel, backup/restore, dan semua fitur CRUD.</div>
+            </div>
+            <div class="guide-role-row">
+              <div class="guide-role-badge"><span class="badge badge-blue">User</span></div>
+              <div class="guide-role-desc">Akses terbatas: dapat input, edit, lihat, dan filter data. Tidak bisa import Excel atau mengelola user lain.</div>
+            </div>
+            <div style="margin-top:14px">
+              <p style="font-size:12px;font-weight:700;margin-bottom:8px">Cara Menambah User Baru:</p>
+              <ol class="guide-steps">
+                <li class="guide-step"><div class="guide-step-num">1</div><div class="guide-step-body"><div class="guide-step-title">Buka Pengaturan</div><div class="guide-step-desc">Masuk ke menu <strong>⚙️ Pengaturan → Manajemen User</strong>.</div></div></li>
+                <li class="guide-step"><div class="guide-step-num">2</div><div class="guide-step-body"><div class="guide-step-title">Isi Form Tambah User</div><div class="guide-step-desc">Masukkan <strong>Nama</strong>, <strong>Email Google</strong>, dan pilih <strong>Role</strong> (Admin/User).</div></div></li>
+                <li class="guide-step"><div class="guide-step-num">3</div><div class="guide-step-body"><div class="guide-step-title">Klik Tambah User</div><div class="guide-step-desc">User langsung bisa login menggunakan akun Google dengan email tersebut.</div></div></li>
+              </ol>
+            </div>
+            <div class="guide-note danger">🚨 Hanya Admin yang dapat menambah atau menghapus user. Admin juga tidak dapat menghapus dirinya sendiri dari sistem.</div>
+          </div>
+        </div>
+
+        <div class="guide-card">
+          <div class="guide-card-header" onclick="toggleGuideCard(this)">
+            <span class="guide-card-icon">💾</span>
+            <span class="guide-card-title">Backup &amp; Restore Data <span class="guide-card-badge admin">Admin Only</span></span>
+            <span class="guide-card-chevron">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14"><polyline points="6 9 12 15 18 9"/></svg>
+            </span>
+          </div>
+          <div class="guide-card-body">
+            <p style="font-size:12px;font-weight:700;margin-bottom:6px">Backup Data:</p>
+            <ol class="guide-steps">
+              <li class="guide-step"><div class="guide-step-num">1</div><div class="guide-step-body"><div class="guide-step-title">Pengaturan → Backup &amp; Restore</div><div class="guide-step-desc">Klik tombol <strong>⬇ Backup JSON</strong>. Semua data dari Firestore akan diunduh sebagai file <code>backup_plugin_[tanggal].json</code>.</div></div></li>
+            </ol>
+            <p style="font-size:12px;font-weight:700;margin:10px 0 6px">Restore Data:</p>
+            <ol class="guide-steps">
+              <li class="guide-step"><div class="guide-step-num">1</div><div class="guide-step-body"><div class="guide-step-title">Klik Restore JSON</div><div class="guide-step-desc">Klik tombol <strong>⬆ Restore JSON</strong>, lalu pilih file backup <code>.json</code> yang sudah ada.</div></div></li>
+              <li class="guide-step"><div class="guide-step-num">2</div><div class="guide-step-body"><div class="guide-step-title">Konfirmasi &amp; Proses</div><div class="guide-step-desc">Sistem akan menampilkan progress bar selama proses restore. Restore bersifat <em>additive</em> — data lama tidak dihapus, data dari file JSON ditambahkan.</div></div></li>
+            </ol>
+            <div class="guide-note">⚠️ <strong>Restore tidak menghapus data lama.</strong> Jika ingin mengganti seluruh data, hapus data di Firestore Console terlebih dahulu sebelum restore.</div>
+          </div>
+        </div>
+
+        <div class="guide-card">
+          <div class="guide-card-header" onclick="toggleGuideCard(this)">
+            <span class="guide-card-icon">🚀</span>
+            <span class="guide-card-title">Import Data Excel (First-Time Setup) <span class="guide-card-badge admin">Admin Only</span></span>
+            <span class="guide-card-chevron">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14"><polyline points="6 9 12 15 18 9"/></svg>
+            </span>
+          </div>
+          <div class="guide-card-body">
+            <div class="guide-note danger">🚨 <strong>Lakukan hanya sekali!</strong> Fitur ini untuk migrasi data awal dari Excel ke Firestore. Pastikan Firestore masih kosong sebelum menjalankan import.</div>
+            <ol class="guide-steps" style="margin-top:12px">
+              <li class="guide-step"><div class="guide-step-num">1</div><div class="guide-step-body"><div class="guide-step-title">Cek Firestore</div><div class="guide-step-desc">Pastikan collection <code>registrasi</code> di Firestore Console masih kosong atau memang ingin ditambahkan data.</div></div></li>
+              <li class="guide-step"><div class="guide-step-num">2</div><div class="guide-step-body"><div class="guide-step-title">Buka Pengaturan → Import Data Excel</div><div class="guide-step-desc">Klik tombol <strong>🚀 Import Data ke Firestore</strong>. Progress bar akan menampilkan proses batch per 400 record.</div></div></li>
+            </ol>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== TAB: FAQ ===== -->
+      <div id="gsec-faq" class="guide-section">
+        <div class="guide-card">
+          <div class="guide-card-header" onclick="toggleGuideCard(this)">
+            <span class="guide-card-icon">❓</span>
+            <span class="guide-card-title">Pertanyaan yang Sering Diajukan</span>
+            <span class="guide-card-chevron">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14"><polyline points="6 9 12 15 18 9"/></svg>
+            </span>
+          </div>
+          <div class="guide-card-body">
+            <div class="guide-faq-q">Q: Mengapa saya tidak bisa login?</div>
+            <div class="guide-faq-a">A: Kemungkinan email Google Anda belum terdaftar di whitelist sistem. Hubungi Administrator untuk meminta akses. Pastikan Anda menggunakan akun Google yang benar.</div>
+
+            <div class="guide-faq-q">Q: Data saya tidak muncul / refresh sangat lama?</div>
+            <div class="guide-faq-a">A: Periksa indikator koneksi di topbar. Jika menunjukkan "Offline" 🔴, berarti koneksi ke Firebase terputus. Coba refresh browser atau periksa koneksi internet Anda.</div>
+
+            <div class="guide-faq-q">Q: Apakah data aman jika browser ditutup?</div>
+            <div class="guide-faq-a">A: Ya. Semua data tersimpan di Firebase Firestore (cloud), bukan di browser. Data tidak akan hilang saat browser ditutup atau komputer dimatikan.</div>
+
+            <div class="guide-faq-q">Q: Bagaimana cara memilih beberapa paket plugin sekaligus?</div>
+            <div class="guide-faq-a">A: Di form Input Registrasi, klik pada dropdown Paket Plugin lalu klik setiap paket yang ingin dipilih. Setiap paket yang dipilih akan muncul sebagai tag biru. Klik tanda ✕ pada tag untuk membatalkan pilihan.</div>
+
+            <div class="guide-faq-q">Q: Bisakah User biasa menghapus data?</div>
+            <div class="guide-faq-a">A: Ya, User biasa dapat menghapus data registrasi. Namun hanya Admin yang dapat mengelola user lain dan melakukan import/export massal.</div>
+
+            <div class="guide-faq-q">Q: Apa yang terjadi saat restore, apakah data lama terhapus?</div>
+            <div class="guide-faq-a">A: Tidak. Restore bersifat additive (menambahkan). Data dari file JSON akan ditambahkan ke Firestore tanpa menghapus data yang sudah ada. Jika ada Firestore ID yang sama, data akan di-merge.</div>
+
+            <div class="guide-faq-q">Q: Saya tidak bisa melihat tombol Import Excel, kenapa?</div>
+            <div class="guide-faq-a">A: Tombol Import Excel hanya tampil untuk pengguna dengan role <strong>Admin</strong>. Jika role Anda adalah User biasa, tombol tersebut disembunyikan secara otomatis.</div>
+          </div>
+        </div>
+
+        <div class="guide-card">
+          <div class="guide-card-header" onclick="toggleGuideCard(this)">
+            <span class="guide-card-icon">📞</span>
+            <span class="guide-card-title">Kontak &amp; Dukungan</span>
+            <span class="guide-card-chevron">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14"><polyline points="6 9 12 15 18 9"/></svg>
+            </span>
+          </div>
+          <div class="guide-card-body">
+            <p style="font-size:12px;color:var(--text2);margin-bottom:12px">Jika menemukan kendala yang tidak tercantum di panduan ini, silakan hubungi Administrator sistem atau tim teknis yang bertanggung jawab atas aplikasi ini.</p>
+            <div class="guide-note success">✅ <strong>Tips:</strong> Selalu lakukan backup data secara rutin (minimal seminggu sekali) untuk menghindari kehilangan data akibat hal yang tidak terduga.</div>
+          </div>
+        </div>
+      </div>
+
     </div>
 
     <!-- SETTINGS -->
@@ -899,6 +1540,7 @@ const pageMeta = {
   list:['Daftar Registrasi','Semua data registrasi plugin customer'],
   laporan:['Laporan & Analitik','Statistik dan analisis data registrasi'],
   expiring:['Segera Habis','Plugin yang mendekati tanggal berakhir'],
+  panduan:['Panduan Penggunaan','Dokumentasi dan cara penggunaan aplikasi'],
   settings:['Pengaturan','Konfigurasi sistem dan manajemen user']
 };
 function gotoPage(name, el){
@@ -1513,6 +2155,21 @@ function updateSysInfo(){
     <div style="margin-bottom:6px"><b>Total Data:</b> ${DB.length} records</div>
     <div><b>Versi App:</b> 2.0 (Firebase)</div>`;
 }
+
+// ========== PANDUAN PENGGUNAAN ==========
+function switchGuideTab(name, el){
+  document.querySelectorAll('.guide-section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.guide-tab').forEach(t=>t.classList.remove('active'));
+  const sec=document.getElementById('gsec-'+name);
+  if(sec) sec.classList.add('active');
+  if(el) el.classList.add('active');
+}
+function toggleGuideCard(headerEl){
+  const card=headerEl.closest('.guide-card');
+  card.classList.toggle('collapsed');
+}
+window.switchGuideTab=switchGuideTab;
+window.toggleGuideCard=toggleGuideCard;
 
 // Keyboard shortcuts
 document.addEventListener('keydown',e=>{
