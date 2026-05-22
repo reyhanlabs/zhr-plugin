@@ -340,11 +340,7 @@ mark.sh{background:#fef08a;color:#713f12;border-radius:2px;padding:0 1px}
     <span class="nav-label">Segera Habis</span>
     <div class="nav-tooltip">Segera Habis</div>
   </div>
-  <div class="nav-item" onclick="gotoPage('history',this)" id="nav-history">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 8v4l3 3"/><path d="M3.05 11a9 9 0 1 0 .5-4.5"/><polyline points="1 6 3 11 8 9"/></svg>
-    <span class="nav-label">Riwayat Customer</span>
-    <div class="nav-tooltip">Riwayat Customer</div>
-  </div>
+
 
   <div class="nav-section-label">Sistem</div>
   <div class="nav-item" onclick="gotoPage('panduan',this)" id="nav-panduan">
@@ -572,27 +568,7 @@ mark.sh{background:#fef08a;color:#713f12;border-radius:2px;padding:0 1px}
       </div>
     </div>
 
-    <!-- RIWAYAT CUSTOMER -->
-    <div id="page-history" class="page">
-      <div class="card">
-        <div class="card-header">
-          <h2>📜 Riwayat Customer per Nomor Serial</h2>
-          <div style="font-size:11px;color:var(--text3)">Pelanggan dengan perubahan kode registrasi di nomor serial yang sama</div>
-        </div>
-        <div class="card-body">
-          <div class="toolbar">
-            <div class="search-box" style="max-width:340px">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-              <input type="text" id="history-search" placeholder="Cari nama perusahaan..." oninput="renderHistoryPage()">
-            </div>
-            <button class="btn btn-secondary btn-sm" onclick="document.getElementById('history-search').value='';renderHistoryPage()">✕ Reset</button>
-          </div>
-          <div id="history-list-content">
-            <p style="color:var(--text3);text-align:center;padding:20px">Memuat data...</p>
-          </div>
-        </div>
-      </div>
-    </div>
+
 
     <!-- PANDUAN PENGGUNAAN -->
     <div id="page-panduan" class="page">
