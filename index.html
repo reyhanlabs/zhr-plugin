@@ -247,6 +247,10 @@ tbody td{padding:9px 11px;font-size:12px;vertical-align:top}
 /* SEARCH HIGHLIGHT */
 mark.sh{background:#fef08a;color:#713f12;border-radius:2px;padding:0 1px}
 
+/* COPY FIELD */
+.copy-field{cursor:pointer;border-radius:3px;padding:1px 3px;transition:background .15s;display:inline-block}
+.copy-field:hover{background:var(--primary-light);color:var(--primary)}
+
 /* SEARCH ADVANCED */
 .search-chips{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px}
 .search-chip{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;background:var(--primary-light);color:var(--primary);cursor:pointer}
@@ -1833,7 +1837,12 @@ function renderList(){
       <td>${statusBadge(getStatus(r.tglAktif))}</td>
       <td style="font-size:11px;color:var(--text2)">${hl(r.userInput||'–')}</td>
       <td style="font-size:10px;font-family:monospace;color:var(--text2);max-width:180px;word-break:break-all">
-        ${r.idKomp?`<span style="color:var(--text3);font-size:9px">ID Komputer:</span><br>${hl(r.idKomp)}<br>`:''}${r.serial?`<span style="color:var(--text3);font-size:9px">No. Serial:</span><br>${hl(r.serial)}<br>`:''}${r.code?`<span style="color:var(--text3);font-size:9px">Kode Reg:</span><br><span style="font-size:9px">${hl(r.code)}</span>`:''}
+        <div style="position:relative;display:flex;flex-direction:column;gap:1px">
+          ${r.idKomp?`<div><span style="color:var(--text3);font-size:9px">ID Komputer:</span><br><span class="copy-field" onclick="copyRegField(this,'${(r.idKomp||'').replace(/'/g,"\\'")}')" title="Klik untuk copy">${hl(r.idKomp)}</span></div>`:''}
+          ${r.serial?`<div><span style="color:var(--text3);font-size:9px">No. Serial:</span><br><span class="copy-field" onclick="copyRegField(this,'${(r.serial||'').replace(/'/g,"\\'")}')" title="Klik untuk copy">${hl(r.serial)}</span></div>`:''}
+          ${r.code?`<div><span style="color:var(--text3);font-size:9px">Kode Reg:</span><br><span class="copy-field" onclick="copyRegField(this,'${(r.code||'').replace(/'/g,"\\'").replace(/\n/g,'\\n')}')" title="Klik untuk copy" style="font-size:9px">${hl(r.code)}</span></div>`:''}
+          ${(r.idKomp||r.serial||r.code)?`<button class="btn btn-secondary btn-sm" style="margin-top:4px;font-size:10px;padding:3px 7px" onclick="copyAllRegInfo('${(r.idKomp||'').replace(/'/g,"\\'")}','${(r.serial||'').replace(/'/g,"\\'")}','${(r.code||'').replace(/'/g,"\\'").replace(/\n/g,'\\n')}')" title="Copy semua info registrasi">⎘ Copy Semua</button>`:''}
+        </div>
       </td>
       <td style="font-size:11px;color:var(--text2);max-width:100px">${hl(r.catatan||'')}</td>
       <td><div style="display:flex;gap:3px;flex-wrap:wrap">
@@ -2611,7 +2620,31 @@ async function importExcelToFirestore(){
 }
 window.importExcelToFirestore=importExcelToFirestore;
 
-// ========== EXPORT CSV ==========
+// ========== COPY INFORMASI REGISTRASI ==========
+function copyRegField(el, text){
+  const decoded = text.replace(/\\n/g,'\n');
+  navigator.clipboard.writeText(decoded).then(()=>{
+    const orig = el.style.background;
+    el.style.background='var(--success-bg)';
+    el.style.color='var(--success)';
+    setTimeout(()=>{ el.style.background=''; el.style.color=''; },900);
+    showToast('Tersalin: '+decoded.substring(0,40)+(decoded.length>40?'…':''),'success');
+  }).catch(()=>showToast('Gagal copy, browser tidak mendukung','danger'));
+}
+function copyAllRegInfo(idKomp, serial, code){
+  const parts=[];
+  if(idKomp) parts.push('ID Komputer: '+idKomp);
+  if(serial)  parts.push('No. Serial: '+serial);
+  if(code)    parts.push('Kode Reg:\n'+code.replace(/\\n/g,'\n'));
+  const text=parts.join('\n');
+  navigator.clipboard.writeText(text).then(()=>{
+    showToast('Semua info registrasi tersalin!','success');
+  }).catch(()=>showToast('Gagal copy','danger'));
+}
+window.copyRegField=copyRegField;
+window.copyAllRegInfo=copyAllRegInfo;
+
+
 function exportCSV(){
   const data=getFilteredData();
   const headers=['No','Nama Perusahaan','Invoice','Paket Plugin','Tgl Registrasi','Aktif Hingga','Status','User Input','Informasi Registrasi','Catatan'];
