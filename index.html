@@ -631,7 +631,7 @@ mark.sh{background:#fef08a;color:#713f12;border-radius:2px;padding:0 1px}
               <option value="">Semua Status</option>
             </select>
             <button class="btn btn-warn btn-sm" onclick="klaimSemua()" id="btn-klaim-semua" title="Klaim semua yang tampil sekarang">✓ Klaim Semua</button>
-            <button class="btn btn-success btn-sm" onclick="exportKomisiCSV()">⬇ Export CSV</button>
+            <button class="btn btn-success btn-sm" onclick="exportKomisiExcel()">⬇ Export Excel</button>
             <button class="btn btn-secondary btn-sm" onclick="printKomisi()">🖨 Cetak</button>
           </div>
         </div>
@@ -3020,73 +3020,184 @@ async function klaimSemua(){
 }
 window.klaimSemua=klaimSemua;
 
-function exportKomisiCSV(){
-  const data=getKomisiData();
-  const bulan=document.getElementById('komisi-filter-bulan')?.value||'';
-  const tahun=document.getElementById('komisi-filter-tahun')?.value||'';
-  const headers=['No','Tgl Registrasi','Nama Perusahaan','Invoice','Paket Plugin','Tipe','Aktif Hingga','Status','User Input','Status Komisi','Diklaim Oleh','Tgl Klaim'];
-  const rows=data.map((r,i)=>[
-    i+1, r.tglReg, `"${r.nama}"`, r.invoice, `"${r.paket}"`, r.tipe,
-    r.tglAktif, getStatus(r.tglAktif), `"${r.userInput||''}"`,
-    r.statusKomisi||'belum', `"${r.klaimedBy||''}"`,
-    r.klaimedAt?.toDate ? fmtDatetime(r.klaimedAt.toDate()) : ''
-  ]);
-  const csv=[headers,...rows].map(r=>r.join(',')).join('\n');
-  const suffix=(tahun||'semua')+(bulan?'-'+bulan:'');
-  const a=document.createElement('a');
-  a.href='data:text/csv;charset=utf-8,\uFEFF'+encodeURIComponent(csv);
-  a.download=`rekap_komisi_${suffix}.csv`;
-  a.click();
-  showToast('Export CSV komisi berhasil!','success');
+function fmtTanggalRekap(d){
+  if(!d) return '–';
+  const dt = new Date(d);
+  if(isNaN(dt)) return d;
+  const bln=['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Ags','Sep','Okt','Nov','Des'];
+  const yy = String(dt.getFullYear()).slice(2);
+  return `${dt.getDate()}-${bln[dt.getMonth()]}-${yy}`;
 }
-window.exportKomisiCSV=exportKomisiCSV;
+
+function buildRekapRows(data){
+  // Susun baris sesuai format Excel:
+  // NAMA PERUSAHAAN = nama + (SERI : xxx) jika ada serial
+  // KETERANGAN = ID : xxx / SERIAL : xxx / CODE : xxx
+  return data.map((r,i)=>{
+    const namaKomp = r.serial ? `${r.nama}\n(SERI : ${r.serial})` : r.nama||'–';
+    const ket = [];
+    if(r.idKomp) ket.push(`ID : ${r.idKomp}`);
+    if(r.serial)  ket.push(`SERIAL : ${r.serial}`);
+    if(r.code)    ket.push(`CODE : ${r.code}`);
+    return {
+      no: i+1,
+      tanggal: fmtTanggalRekap(r.tglReg),
+      invoice: r.invoice||'–',
+      nama: namaKomp,
+      produk: r.paket||'–',
+      keterangan: ket.join('\n')||'–',
+      raw: r
+    };
+  });
+}
+
+function getPeriodeLabel(){
+  const bulanEl = document.getElementById('komisi-filter-bulan');
+  const bulanTxt = bulanEl?.value
+    ? bulanEl.options[bulanEl.selectedIndex]?.text
+    : null;
+  const tahun = document.getElementById('komisi-filter-tahun')?.value||'';
+  if(bulanTxt && tahun) return `${bulanTxt.toUpperCase()} ${tahun}`;
+  if(tahun) return tahun;
+  if(bulanTxt) return bulanTxt.toUpperCase();
+  return 'SEMUA PERIODE';
+}
+
+function exportKomisiExcel(){
+  const data = getKomisiData();
+  if(!data.length) return showToast('Tidak ada data untuk diekspor.','info');
+  const rows = buildRekapRows(data);
+  const periode = getPeriodeLabel();
+  const now = new Date();
+  const tglCetak = `${now.getDate()} ${['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'][now.getMonth()]} ${now.getFullYear()}`;
+
+  // Buat HTML table yang bisa dibuka Excel
+  let html = `<html xmlns:o="urn:schemas-microsoft-com:office:office"
+    xmlns:x="urn:schemas-microsoft-com:office:excel"
+    xmlns="http://www.w3.org/TR/REC-html40">
+  <head><meta charset="UTF-8">
+  <!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets>
+  <x:ExcelWorksheet><x:Name>REKAP PLUGIN</x:Name>
+  <x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions>
+  </x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]-->
+  <style>
+    body{font-family:Calibri,sans-serif;font-size:11pt}
+    .title{font-size:14pt;font-weight:bold;text-align:center}
+    .subtitle{font-size:12pt;font-weight:bold;text-align:center}
+    table{border-collapse:collapse;width:100%}
+    th{background:#BDD7EE;font-weight:bold;text-align:center;border:1px solid #000;padding:5px 8px;font-size:11pt}
+    td{border:1px solid #000;padding:4px 7px;vertical-align:top;font-size:10pt}
+    .no{text-align:center;width:40px}
+    .tgl{text-align:center;width:90px}
+    .inv{text-align:center;width:110px}
+    .nama{width:220px}
+    .produk{width:160px}
+    .ket{width:300px;white-space:pre-line}
+    .center{text-align:center}
+  </style></head><body>
+  <p class="title">REKAP REGISTRASI PLUGIN</p>
+  <p class="subtitle">PERIODE ${periode}</p>
+  <br>
+  <table>
+    <thead><tr>
+      <th class="no">NO</th>
+      <th class="tgl">TANGGAL</th>
+      <th class="inv">NO INV.</th>
+      <th class="nama">NAMA PERUSAHAAN</th>
+      <th class="produk">PRODUK</th>
+      <th class="ket">KETERANGAN</th>
+    </tr></thead>
+    <tbody>
+  `;
+
+  rows.forEach(row=>{
+    html += `<tr>
+      <td class="no">${row.no}</td>
+      <td class="tgl center">${row.tanggal}</td>
+      <td class="inv center">${row.invoice}</td>
+      <td class="nama">${row.nama.replace(/\n/g,'<br>')}</td>
+      <td class="produk">${row.produk}</td>
+      <td class="ket">${row.keterangan.replace(/\n/g,'<br>')}</td>
+    </tr>`;
+  });
+
+  html += `</tbody></table>
+  <br><p style="font-size:9pt;color:#666">Dicetak: ${tglCetak} &nbsp;·&nbsp; Total: ${data.length} registrasi</p>
+  </body></html>`;
+
+  const blob = new Blob([html], {type:'application/vnd.ms-excel;charset=utf-8'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const suffix = getPeriodeLabel().replace(/\s+/g,'_');
+  a.href = url;
+  a.download = `REKAP_PLUGIN_${suffix}.xls`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('Export Excel berhasil!','success');
+}
+window.exportKomisiExcel=exportKomisiExcel;
 
 function printKomisi(){
-  const data=getKomisiData();
-  const bulanEl=document.getElementById('komisi-filter-bulan');
-  const bulanTxt=bulanEl?.options[bulanEl.selectedIndex]?.text||'Semua Bulan';
-  const tahun=document.getElementById('komisi-filter-tahun')?.value||'Semua Tahun';
-  const totalBaru=data.filter(r=>r.tipe==='Baru').length;
-  const totalPerp=data.filter(r=>r.tipe==='Perpanjangan').length;
-  const totalDiklaim=data.filter(r=>r.statusKomisi==='diklaim').length;
-  const w=window.open('','_blank','width=1000,height=700');
-  w.document.write(`<!DOCTYPE html><html lang="id"><head><meta charset="UTF-8"><title>Rekap Komisi</title>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
-  <style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:'Plus Jakarta Sans',sans-serif;padding:24px;font-size:13px;color:#0f172a}
-  h1{font-size:18px;font-weight:700;margin-bottom:4px}.sub{font-size:12px;color:#64748b;margin-bottom:20px}
-  .stats{display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap}
-  .stat{background:#f0f4fa;border-radius:8px;padding:10px 16px;min-width:110px}
-  .stat .v{font-size:20px;font-weight:700}.stat .l{font-size:10px;color:#64748b;text-transform:uppercase;letter-spacing:.04em;margin-top:2px}
-  table{width:100%;border-collapse:collapse;font-size:11px}
-  th{background:#f0f4fa;padding:7px 9px;text-align:left;font-size:9px;font-weight:700;color:#475569;border-bottom:2px solid #e2e8f0;text-transform:uppercase;letter-spacing:.04em}
-  td{padding:7px 9px;border-bottom:1px solid #e2e8f0;vertical-align:top}
-  .badge{display:inline-flex;padding:2px 7px;border-radius:20px;font-size:10px;font-weight:700}
-  .baru{background:#dbeafe;color:#1e40af}.perp{background:#d1fae5;color:#065f46}
-  .diklaim{background:#d1fae5;color:#065f46}.belum{background:#fef3c7;color:#92400e}
-  tr.dim{opacity:.55}
-  @media print{body{padding:0}}</style></head><body>
-  <h1>💰 Rekap Komisi Registrasi</h1>
-  <div class="sub">Periode: ${bulanTxt} ${tahun} · Dicetak: ${new Date().toLocaleDateString('id-ID',{day:'2-digit',month:'long',year:'numeric'})}</div>
-  <div class="stats">
-    <div class="stat"><div class="v">${data.length}</div><div class="l">Total</div></div>
-    <div class="stat"><div class="v" style="color:#1e40af">${totalBaru}</div><div class="l">🆕 Baru</div></div>
-    <div class="stat"><div class="v" style="color:#065f46">${totalPerp}</div><div class="l">🔄 Perpanjangan</div></div>
-    <div class="stat"><div class="v" style="color:#065f46">${totalDiklaim}</div><div class="l">✅ Diklaim</div></div>
-    <div class="stat"><div class="v" style="color:#d97706">${data.length-totalDiklaim}</div><div class="l">⏳ Belum</div></div>
-  </div>
-  <table><thead><tr><th>No</th><th>Tgl Reg</th><th>Nama Perusahaan</th><th>Invoice</th><th>Paket</th><th>Tipe</th><th>Aktif Hingga</th><th>User Input</th><th>Status Komisi</th><th>Diklaim Oleh</th></tr></thead>
-  <tbody>${data.map((r,i)=>{
-    const sk=r.statusKomisi||'belum';
-    return `<tr class="${sk==='diklaim'?'dim':''}">
-      <td>${i+1}</td><td>${r.tglReg||'–'}</td><td><strong>${r.nama||'–'}</strong></td>
-      <td>${r.invoice||'–'}</td><td>${r.paket||'–'}</td>
-      <td><span class="badge ${r.tipe==='Baru'?'baru':'perp'}">${r.tipe}</span></td>
-      <td>${r.tglAktif||'–'}</td><td>${r.userInput||'–'}</td>
-      <td><span class="badge ${sk==='diklaim'?'diklaim':'belum'}">${sk==='diklaim'?'✅ Diklaim':'⏳ Belum'}</span></td>
-      <td style="font-size:10px">${r.klaimedBy||'–'}</td>
+  const data = getKomisiData();
+  if(!data.length) return showToast('Tidak ada data untuk dicetak.','info');
+  const rows = buildRekapRows(data);
+  const periode = getPeriodeLabel();
+  const now = new Date();
+  const tglCetak = `${now.getDate()} ${['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'][now.getMonth()]} ${now.getFullYear()}`;
+
+  const w = window.open('','_blank','width=1100,height=800');
+  w.document.write(`<!DOCTYPE html><html lang="id"><head>
+  <meta charset="UTF-8"><title>Rekap Registrasi Plugin</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:Calibri,Arial,sans-serif;padding:20px 28px;font-size:11pt;color:#000}
+    h1{font-size:15pt;font-weight:700;text-align:center;margin-bottom:4px;text-transform:uppercase}
+    h2{font-size:13pt;font-weight:700;text-align:center;margin-bottom:18px;text-transform:uppercase}
+    table{width:100%;border-collapse:collapse}
+    th{background:#BDD7EE;font-weight:700;text-align:center;border:1px solid #000;padding:6px 8px;font-size:10pt;text-transform:uppercase}
+    td{border:1px solid #000;padding:5px 8px;vertical-align:top;font-size:10pt}
+    .no{text-align:center;width:38px}
+    .tgl{text-align:center;width:88px;white-space:nowrap}
+    .inv{text-align:center;width:108px}
+    .nama{width:200px;font-weight:600}
+    .nama small{font-weight:400;color:#444}
+    .produk{width:150px}
+    .ket{white-space:pre-line;font-size:9.5pt;line-height:1.55}
+    .footer{margin-top:14px;font-size:9pt;color:#555;text-align:right}
+    @page{size:A4 landscape;margin:14mm 16mm}
+    @media print{body{padding:0}th{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
+  </style></head><body>
+  <h1>Rekap Registrasi Plugin</h1>
+  <h2>Periode ${periode}</h2>
+  <table>
+    <thead><tr>
+      <th class="no">No</th>
+      <th class="tgl">Tanggal</th>
+      <th class="inv">No Inv.</th>
+      <th class="nama">Nama Perusahaan</th>
+      <th class="produk">Produk</th>
+      <th class="ket">Keterangan</th>
+    </tr></thead>
+    <tbody>
+  ${rows.map(row=>{
+    // Pisah nama dan seri untuk tampilan dua baris
+    const parts = row.nama.split('\n');
+    const namaUtama = parts[0]||'';
+    const seriInfo = parts[1]||'';
+    return `<tr>
+      <td class="no">${row.no}</td>
+      <td class="tgl">${row.tanggal}</td>
+      <td class="inv">${row.invoice}</td>
+      <td class="nama">${namaUtama}${seriInfo?`<br><small>${seriInfo}</small>`:''}</td>
+      <td class="produk">${row.produk}</td>
+      <td class="ket">${row.keterangan.replace(/\n/g,'<br>')}</td>
     </tr>`;
-  }).join('')}</tbody></table>
-  <script>window.onload=()=>window.print()<\/script></body></html>`);
+  }).join('')}
+    </tbody>
+  </table>
+  <div class="footer">Total: ${data.length} registrasi &nbsp;·&nbsp; Dicetak: ${tglCetak}</div>
+  <script>window.onload=()=>window.print()<\/script>
+  </body></html>`);
   w.document.close();
 }
 window.printKomisi=printKomisi;
