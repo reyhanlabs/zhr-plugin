@@ -221,6 +221,42 @@ tbody td{padding:9px 11px;font-size:12px;vertical-align:top}
 .import-bar{background:var(--surface2);border-radius:8px;height:8px;overflow:hidden;margin-top:8px}
 .import-fill{height:100%;background:var(--primary);transition:width .3s;border-radius:8px}
 
+/* HISTORY MODAL */
+.history-timeline{position:relative;padding-left:24px}
+.history-timeline::before{content:'';position:absolute;left:8px;top:0;bottom:0;width:2px;background:var(--border)}
+.history-item{position:relative;margin-bottom:16px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:12px 14px}
+.history-item::before{content:'';position:absolute;left:-20px;top:16px;width:10px;height:10px;border-radius:50%;background:var(--primary);border:2px solid var(--surface);z-index:1}
+.history-item.current::before{background:var(--success)}
+.history-item .h-date{font-size:10px;color:var(--text3);margin-bottom:4px;font-weight:600;text-transform:uppercase;letter-spacing:.04em}
+.history-item .h-code{font-family:monospace;font-size:11px;background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:6px 10px;color:var(--primary);word-break:break-all;margin-top:6px}
+.history-item .h-paket{display:inline-flex;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:600;background:var(--primary-light);color:var(--primary);margin-bottom:4px}
+.history-item .h-changed{display:inline-flex;align-items:center;gap:4px;font-size:10px;color:var(--danger);background:var(--danger-bg);padding:2px 8px;border-radius:10px;margin-left:4px}
+.history-item .h-user{font-size:11px;color:var(--text2);margin-top:4px}
+.history-summary{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:16px}
+.history-summary-card{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;text-align:center}
+.history-summary-card .val{font-size:20px;font-weight:700;color:var(--primary)}
+.history-summary-card .lbl{font-size:10px;color:var(--text3);margin-top:2px;text-transform:uppercase;letter-spacing:.04em}
+.serial-group{margin-bottom:12px;background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden}
+.serial-group-header{padding:10px 14px;background:var(--surface2);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none}
+.serial-group-header:hover{background:var(--primary-light)}
+.serial-label{font-size:11px;font-weight:700;font-family:monospace;color:var(--text2)}
+.serial-count{font-size:10px;background:var(--primary-light);color:var(--primary);padding:2px 8px;border-radius:10px;font-weight:700}
+.serial-group-body{padding:12px 14px;display:none}
+.serial-group-body.open{display:block}
+
+/* SEARCH HIGHLIGHT */
+mark.sh{background:#fef08a;color:#713f12;border-radius:2px;padding:0 1px}
+
+/* SEARCH ADVANCED */
+.search-chips{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px}
+.search-chip{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;background:var(--primary-light);color:var(--primary);cursor:pointer}
+.search-chip:hover{background:var(--primary);color:#fff}
+.search-chip.active{background:var(--primary);color:#fff}
+
+/* HISTORY TRIGGER BUTTON */
+.btn-history{background:var(--primary-light);color:var(--primary);border:1px solid var(--primary)}
+.btn-history:hover{background:var(--primary);color:#fff}
+
 @media print{
   .sidebar,.topbar,.toolbar,.modal-overlay,.btn:not(.no-hide),.auth-screen,.loading-overlay{display:none!important}
   .main{margin:0!important}
@@ -303,6 +339,11 @@ tbody td{padding:9px 11px;font-size:12px;vertical-align:top}
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
     <span class="nav-label">Segera Habis</span>
     <div class="nav-tooltip">Segera Habis</div>
+  </div>
+  <div class="nav-item" onclick="gotoPage('history',this)" id="nav-history">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 8v4l3 3"/><path d="M3.05 11a9 9 0 1 0 .5-4.5"/><polyline points="1 6 3 11 8 9"/></svg>
+    <span class="nav-label">Riwayat Customer</span>
+    <div class="nav-tooltip">Riwayat Customer</div>
   </div>
 
   <div class="nav-section-label">Sistem</div>
@@ -454,7 +495,7 @@ tbody td{padding:9px 11px;font-size:12px;vertical-align:top}
           <div class="toolbar">
             <div class="search-box">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-              <input type="text" id="search-input" placeholder="Cari perusahaan, paket, invoice..." oninput="filterList()">
+              <input type="text" id="search-input" placeholder="Cari nama, serial, kode reg, invoice, ID komp, catatan..." oninput="filterList()">
             </div>
             <select id="filter-paket" onchange="filterList()" style="min-width:150px">
               <option value="">Semua Paket</option>
@@ -526,6 +567,28 @@ tbody td{padding:9px 11px;font-size:12px;vertical-align:top}
               <thead><tr><th>No</th><th>Nama Perusahaan</th><th>Paket Plugin</th><th>Aktif Hingga</th><th>Sisa Hari</th><th>User Input</th><th>Aksi</th></tr></thead>
               <tbody id="exp-body"></tbody>
             </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIWAYAT CUSTOMER -->
+    <div id="page-history" class="page">
+      <div class="card">
+        <div class="card-header">
+          <h2>📜 Riwayat Customer per Nomor Serial</h2>
+          <div style="font-size:11px;color:var(--text3)">Pelanggan dengan perubahan kode registrasi di nomor serial yang sama</div>
+        </div>
+        <div class="card-body">
+          <div class="toolbar">
+            <div class="search-box" style="max-width:340px">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              <input type="text" id="history-search" placeholder="Cari nama perusahaan..." oninput="renderHistoryPage()">
+            </div>
+            <button class="btn btn-secondary btn-sm" onclick="document.getElementById('history-search').value='';renderHistoryPage()">✕ Reset</button>
+          </div>
+          <div id="history-list-content">
+            <p style="color:var(--text3);text-align:center;padding:20px">Memuat data...</p>
           </div>
         </div>
       </div>
@@ -1231,6 +1294,25 @@ tbody td{padding:9px 11px;font-size:12px;vertical-align:top}
 </div><!-- main -->
 </div><!-- app-shell -->
 
+<!-- MODAL HISTORY -->
+<div class="modal-overlay" id="modal-history">
+  <div class="modal" style="max-width:760px">
+    <div class="modal-header">
+      <div>
+        <h2 id="history-title">📜 Riwayat Registrasi</h2>
+        <div style="font-size:11px;color:var(--text3);margin-top:2px" id="history-subtitle">–</div>
+      </div>
+      <button class="btn btn-secondary btn-icon" onclick="closeHistory()">✕</button>
+    </div>
+    <div class="modal-body" id="history-body">
+      <!-- content generated by JS -->
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeHistory()">Tutup</button>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL EDIT -->
 <div class="modal-overlay" id="modal">
   <div class="modal">
@@ -1531,6 +1613,7 @@ function renderCurrentPage(){
   else if(id==='list') renderList();
   else if(id==='laporan') renderLaporan();
   else if(id==='expiring') renderExpiringPage();
+  else if(id==='history') renderHistoryPage();
 }
 
 // ========== NAVIGATION ==========
@@ -1540,6 +1623,7 @@ const pageMeta = {
   list:['Daftar Registrasi','Semua data registrasi plugin customer'],
   laporan:['Laporan & Analitik','Statistik dan analisis data registrasi'],
   expiring:['Segera Habis','Plugin yang mendekati tanggal berakhir'],
+  history:['Riwayat Customer','Riwayat perubahan kode registrasi per customer per serial'],
   panduan:['Panduan Penggunaan','Dokumentasi dan cara penggunaan aplikasi'],
   settings:['Pengaturan','Konfigurasi sistem dan manajemen user']
 };
@@ -1556,6 +1640,7 @@ function gotoPage(name, el){
   if(name==='list'){ currentPage=1; renderList(); }
   if(name==='laporan') renderLaporan();
   if(name==='expiring') renderExpiringPage();
+  if(name==='history') renderHistoryPage();
   if(name==='form'){ editId=null; resetForm(); document.getElementById('form-title').textContent='📝 Form Registrasi Baru'; }
   if(name==='settings'){ loadWhitelist(); updateSysInfo(); }
 }
@@ -1674,19 +1759,33 @@ window.saveRecord=saveRecord;
 
 // ========== LIST ==========
 function getFilteredData(){
-  const q=(document.getElementById('search-input')||{value:''}).value.toLowerCase();
+  const q=(document.getElementById('search-input')||{value:''}).value.toLowerCase().trim();
   const pkt=(document.getElementById('filter-paket')||{value:''}).value.toLowerCase();
   const sts=(document.getElementById('filter-status')||{value:''}).value;
   const dari=(document.getElementById('filter-dari')||{value:''}).value;
   const sampai=(document.getElementById('filter-sampai')||{value:''}).value;
   return DB.filter(r=>{
-    if(q && !r.nama?.toLowerCase().includes(q) && !r.paket?.toLowerCase().includes(q) && !r.invoice?.toLowerCase().includes(q)) return false;
+    if(q){
+      // Universal search: cari di SEMUA field yang ada di data
+      const haystack=[
+        r.nama,r.invoice,r.paket,r.tglReg,r.tglAktif,
+        r.idKomp,r.serial,r.code,r.catatan,
+        r.userInput,r.userEmail
+      ].map(v=>(v||'').toLowerCase()).join(' ');
+      if(!haystack.includes(q)) return false;
+    }
     if(pkt && !r.paket?.toLowerCase().includes(pkt)) return false;
     if(sts && getStatus(r.tglAktif)!==sts) return false;
     if(dari && r.tglReg && r.tglReg<dari) return false;
     if(sampai && r.tglReg && r.tglReg>sampai) return false;
     return true;
   });
+}
+
+function highlightText(text, q){
+  if(!q||!text) return text||'';
+  const escaped=q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+  return String(text).replace(new RegExp(`(${escaped})`,'gi'),'<mark class="sh">$1</mark>');
 }
 function filterList(){ currentPage=1; renderList(); }
 function clearFilters(){
@@ -1704,6 +1803,7 @@ function renderList(){
   const pages=Math.ceil(total/pageSize)||1;
   if(currentPage>pages) currentPage=pages;
   const slice=filteredData.slice((currentPage-1)*pageSize, currentPage*pageSize);
+  const q=(document.getElementById('search-input')||{value:''}).value.trim();
 
   const pktSel=document.getElementById('filter-paket');
   if(pktSel){
@@ -1712,29 +1812,40 @@ function renderList(){
     pktSel.innerHTML='<option value="">Semua Paket</option>'+pakets.map(p=>`<option value="${p}" ${cur===p?'selected':''} >${p}</option>`).join('');
   }
 
+  const hl=(t)=>q?highlightText(t,q):t||'–';
+
   const tbody=document.getElementById('tbl-body');
   if(!slice.length){
     tbody.innerHTML='<tr><td colspan="11" style="text-align:center;padding:32px;color:var(--text3)">Tidak ada data</td></tr>';
   } else {
-    tbody.innerHTML=slice.map((r,i)=>`<tr>
+    tbody.innerHTML=slice.map((r,i)=>{
+      // Hitung jumlah riwayat untuk serial ini (sama nama & serial)
+      const histCount = r.serial ? DB.filter(x=>
+        x.nama?.toLowerCase()===r.nama?.toLowerCase() &&
+        x.serial===r.serial
+      ).length : 0;
+      const hasHistory = histCount > 1;
+      return `<tr>
       <td style="color:var(--text3)">${(currentPage-1)*pageSize+i+1}</td>
-      <td class="td-name">${r.nama||'–'}</td>
-      <td>${r.invoice||'–'}</td>
-      <td>${(r.paket||'–').split(',').map(p=>`<span class="badge badge-blue" style="margin:1px">${p.trim()}</span>`).join(' ')}</td>
+      <td class="td-name">${hl(r.nama)}</td>
+      <td>${hl(r.invoice||'–')}</td>
+      <td>${(r.paket||'–').split(',').map(p=>`<span class="badge badge-blue" style="margin:1px">${q?highlightText(p.trim(),q):p.trim()}</span>`).join(' ')}</td>
       <td>${fmtDate(r.tglReg)}</td>
       <td>${fmtDate(r.tglAktif)}</td>
       <td>${statusBadge(getStatus(r.tglAktif))}</td>
-      <td style="font-size:11px;color:var(--text2)">${r.userInput||'–'}</td>
+      <td style="font-size:11px;color:var(--text2)">${hl(r.userInput||'–')}</td>
       <td style="font-size:10px;font-family:monospace;color:var(--text2);max-width:180px;word-break:break-all">
-        ${r.idKomp?`<span style="color:var(--text3);font-size:9px">ID Komputer:</span><br>${r.idKomp}<br>`:''}${r.serial?`<span style="color:var(--text3);font-size:9px">No. Serial:</span><br>${r.serial}<br>`:''}${r.code?`<span style="color:var(--text3);font-size:9px">Kode Reg:</span><br><span style="font-size:9px">${r.code}</span>`:''}
+        ${r.idKomp?`<span style="color:var(--text3);font-size:9px">ID Komputer:</span><br>${hl(r.idKomp)}<br>`:''}${r.serial?`<span style="color:var(--text3);font-size:9px">No. Serial:</span><br>${hl(r.serial)}<br>`:''}${r.code?`<span style="color:var(--text3);font-size:9px">Kode Reg:</span><br><span style="font-size:9px">${hl(r.code)}</span>`:''}
       </td>
-      <td style="font-size:11px;color:var(--text2);max-width:100px">${r.catatan||''}</td>
-      <td><div style="display:flex;gap:3px">
+      <td style="font-size:11px;color:var(--text2);max-width:100px">${hl(r.catatan||'')}</td>
+      <td><div style="display:flex;gap:3px;flex-wrap:wrap">
         <button class="btn btn-secondary btn-sm btn-icon" title="Edit" onclick="openEdit('${r.firestoreId}')">✏</button>
+        ${hasHistory?`<button class="btn btn-history btn-sm btn-icon" title="Lihat Riwayat (${histCount} record)" onclick="openHistory('${encodeURIComponent(r.nama||'')}','${r.serial||''}')">📜</button>`:''}
         <button class="btn btn-secondary btn-sm btn-icon" title="Cetak" onclick="printItem('${r.firestoreId}')">🖨</button>
         <button class="btn btn-danger btn-sm btn-icon" title="Hapus" onclick="openDel('${r.firestoreId}')">🗑</button>
       </div></td>
-    </tr>`).join('');
+    </tr>`;
+    }).join('');
   }
   document.getElementById('row-info').textContent=`Menampilkan ${slice.length} dari ${total} data`;
   renderPagination(pages);
@@ -1753,6 +1864,145 @@ function renderPagination(pages){
 }
 function goPage(p){ currentPage=p; renderList(); }
 window.goPage=goPage;
+
+// ========== HISTORY PER CUSTOMER PER SERIAL ==========
+function openHistory(namaEncoded, serial){
+  const nama = decodeURIComponent(namaEncoded);
+  // Kumpulkan semua record dengan nama yang sama (case-insensitive)
+  const namaLower = nama.toLowerCase();
+  let allByCustomer = DB.filter(r=>r.nama?.toLowerCase()===namaLower);
+
+  // Jika ada serial, filter dulu per serial; jika tidak ada, tampilkan semua serial
+  let serials = [...new Set(allByCustomer.map(r=>r.serial).filter(Boolean))].sort();
+  let noSerialRecords = allByCustomer.filter(r=>!r.serial);
+
+  document.getElementById('history-title').textContent = `📜 Riwayat: ${nama}`;
+  document.getElementById('history-subtitle').textContent =
+    `${allByCustomer.length} total record · ${serials.length} nomor serial · Disorot: ${serial||'–'}`;
+
+  const body = document.getElementById('history-body');
+
+  // Summary
+  const activeCount = allByCustomer.filter(r=>getStatus(r.tglAktif)==='active').length;
+  const expiredCount = allByCustomer.filter(r=>getStatus(r.tglAktif)==='expired').length;
+  const uniquePakets = [...new Set(allByCustomer.map(r=>r.paket).filter(Boolean))];
+  let html = `
+    <div class="history-summary">
+      <div class="history-summary-card"><div class="val">${allByCustomer.length}</div><div class="lbl">Total Record</div></div>
+      <div class="history-summary-card"><div class="val" style="color:var(--success)">${activeCount}</div><div class="lbl">Aktif</div></div>
+      <div class="history-summary-card"><div class="val" style="color:var(--danger)">${expiredCount}</div><div class="lbl">Kadaluarsa</div></div>
+    </div>
+    <div style="margin-bottom:12px;font-size:12px;color:var(--text2)">
+      <b>Paket pernah dipakai:</b> ${uniquePakets.map(p=>`<span class="badge badge-blue" style="margin:2px">${p}</span>`).join(' ')||'–'}
+    </div>`;
+
+  // Group by serial
+  if(serials.length===0 && noSerialRecords.length>0){
+    // Tidak ada serial sama sekali
+    html += renderSerialGroup('(Tanpa Serial)', noSerialRecords, serial, true);
+  } else {
+    // Per serial
+    serials.forEach(s=>{
+      const records = allByCustomer.filter(r=>r.serial===s).sort((a,b)=>(a.tglReg||'').localeCompare(b.tglReg||''));
+      html += renderSerialGroup(s, records, serial, s===serial);
+    });
+    if(noSerialRecords.length>0){
+      html += renderSerialGroup('(Tanpa Serial)', noSerialRecords, serial, false);
+    }
+  }
+
+  body.innerHTML = html;
+  document.getElementById('modal-history').classList.add('open');
+
+  // Auto-open the highlighted serial
+  if(serial){
+    const targetId = 'sg-'+serial.replace(/[^a-zA-Z0-9]/g,'_');
+    const el = document.getElementById(targetId);
+    if(el) el.classList.add('open');
+  } else if(serials.length===1){
+    const targetId = 'sg-'+serials[0].replace(/[^a-zA-Z0-9]/g,'_');
+    const el = document.getElementById(targetId);
+    if(el) el.classList.add('open');
+  }
+}
+
+function renderSerialGroup(serialNum, records, activeSerial, isHighlighted){
+  const safeId = 'sg-'+serialNum.replace(/[^a-zA-Z0-9]/g,'_');
+  const latestStatus = records.length?getStatus(records[records.length-1].tglAktif):'unknown';
+  const statusColor = latestStatus==='active'?'var(--success)':latestStatus==='expiring'?'var(--warn)':'var(--danger)';
+  return `
+    <div class="serial-group" style="${isHighlighted?'border-color:var(--primary);box-shadow:0 0 0 2px rgba(30,64,175,.15)':''}">
+      <div class="serial-group-header" onclick="toggleSerialGroup('${safeId}')">
+        <div style="display:flex;align-items:center;gap:10px">
+          ${isHighlighted?'<span style="color:var(--primary);font-size:14px">▶</span>':''}
+          <div>
+            <div class="serial-label">🔢 Serial: ${serialNum}</div>
+            <div style="font-size:10px;color:var(--text3);margin-top:2px">${records.length} kali registrasi</div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px">
+          <span style="width:8px;height:8px;border-radius:50%;background:${statusColor};display:inline-block"></span>
+          <span class="serial-count">${records.length} record</span>
+        </div>
+      </div>
+      <div class="serial-group-body" id="${safeId}">
+        ${renderHistoryTimeline(records)}
+      </div>
+    </div>`;
+}
+
+function renderHistoryTimeline(records){
+  if(!records.length) return '<p style="color:var(--text3);font-size:12px">Tidak ada data</p>';
+  // Sort by tglReg ascending, with empty dates last
+  const sorted = [...records].sort((a,b)=>{
+    if(!a.tglReg&&!b.tglReg) return 0;
+    if(!a.tglReg) return 1;
+    if(!b.tglReg) return -1;
+    return a.tglReg.localeCompare(b.tglReg);
+  });
+  const latestFid = sorted[sorted.length-1]?.firestoreId;
+
+  let html = '<div class="history-timeline">';
+  sorted.forEach((r,i)=>{
+    const isCurrent = r.firestoreId===latestFid;
+    const prevCode = i>0 ? sorted[i-1].code : null;
+    const codeChanged = prevCode && prevCode!==r.code;
+    const status = getStatus(r.tglAktif);
+    html += `
+      <div class="history-item ${isCurrent?'current':''}">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;flex-wrap:wrap">
+          <div>
+            <div class="h-date">${r.tglReg?fmtDate(r.tglReg):'(Tgl tdk diketahui)'} ${isCurrent?'<span style="background:var(--success-bg);color:var(--success);padding:1px 6px;border-radius:10px;font-size:9px;font-weight:700">● TERBARU</span>':''}</div>
+            <span class="h-paket">${r.paket||'–'}</span>
+            ${codeChanged?'<span class="h-changed">⚡ Kode Reg Berubah</span>':''}
+          </div>
+          <div style="text-align:right">${statusBadge(status)}<br><span style="font-size:10px;color:var(--text3)">Aktif: ${fmtDate(r.tglAktif)}</span></div>
+        </div>
+        ${r.idKomp?`<div style="font-size:10px;color:var(--text3);margin-top:6px">ID Komp: <span style="font-family:monospace;color:var(--text2)">${r.idKomp}</span></div>`:''}
+        ${r.code?`<div class="h-code">${r.code}</div>`:'<div style="font-size:10px;color:var(--text3);margin-top:6px;font-style:italic">(kode registrasi kosong)</div>'}
+        <div class="h-user">👤 ${r.userInput||'–'} · ${r.invoice?'Inv: '+r.invoice:'–'}</div>
+        ${r.catatan?`<div style="font-size:11px;color:var(--text2);margin-top:4px;background:var(--warn-bg);border-radius:6px;padding:4px 8px">📝 ${r.catatan}</div>`:''}
+        <div style="display:flex;gap:4px;margin-top:8px">
+          <button class="btn btn-secondary btn-sm" onclick="closeHistory();openEdit('${r.firestoreId}')">✏ Edit</button>
+          <button class="btn btn-secondary btn-sm" onclick="printItem('${r.firestoreId}')">🖨</button>
+        </div>
+      </div>`;
+  });
+  html += '</div>';
+  return html;
+}
+
+function toggleSerialGroup(id){
+  const el=document.getElementById(id);
+  if(el) el.classList.toggle('open');
+}
+
+function closeHistory(){
+  document.getElementById('modal-history').classList.remove('open');
+}
+window.openHistory=openHistory;
+window.closeHistory=closeHistory;
+window.toggleSerialGroup=toggleSerialGroup;
 
 // ========== CRUD ==========
 function openEdit(fid){
@@ -1956,6 +2206,100 @@ function renderTimeline(){
 }
 window.renderTimeline=renderTimeline;
 
+// ========== RIWAYAT CUSTOMER PAGE ==========
+function renderHistoryPage(){
+  const q=(document.getElementById('history-search')||{value:''}).value.toLowerCase().trim();
+  const el=document.getElementById('history-list-content');
+  if(!el) return;
+
+  // Kelompokkan: per (nama, serial) yang punya lebih dari 1 record
+  // Dan deteksi perubahan kode registrasi
+  const groups={};
+  DB.forEach(r=>{
+    const key = (r.nama||'–')+'||'+(r.serial||'__nosn__');
+    if(!groups[key]) groups[key]={nama:r.nama||'–',serial:r.serial||'',records:[]};
+    groups[key].records.push(r);
+  });
+
+  // Filter: hanya yang punya lebih dari 1 record ATAU punya perubahan kode
+  let entries = Object.values(groups).filter(g=>{
+    if(g.records.length<=1) return false;
+    return true;
+  });
+
+  // Filter by search
+  if(q) entries=entries.filter(g=>g.nama.toLowerCase().includes(q)||(g.serial||'').toLowerCase().includes(q));
+
+  // Sort by nama then serial
+  entries.sort((a,b)=>a.nama.localeCompare(b.nama)||(a.serial||'').localeCompare(b.serial||''));
+
+  if(!entries.length){
+    el.innerHTML=`<p style="color:var(--text3);text-align:center;padding:32px">${q?'Tidak ditemukan':'Belum ada data riwayat (perlu minimal 2 registrasi pada nama & serial yang sama)'}</p>`;
+    return;
+  }
+
+  // Group by customer name
+  const byCustomer={};
+  entries.forEach(g=>{
+    if(!byCustomer[g.nama]) byCustomer[g.nama]=[];
+    byCustomer[g.nama].push(g);
+  });
+
+  let html='<div style="margin-bottom:10px;font-size:12px;color:var(--text2)">Ditemukan <b>'+entries.length+'</b> kombinasi nama+serial · <b>'+Object.keys(byCustomer).length+'</b> perusahaan unik</div>';
+  Object.entries(byCustomer).forEach(([nama, serialGroups])=>{
+    const totalRec = serialGroups.reduce((s,g)=>s+g.records.length,0);
+    // Detect code changes
+    let hasChange=false;
+    serialGroups.forEach(g=>{
+      const sorted=g.records.slice().sort((a,b)=>(a.tglReg||'').localeCompare(b.tglReg||''));
+      for(let i=1;i<sorted.length;i++){
+        if(sorted[i].code&&sorted[i-1].code&&sorted[i].code!==sorted[i-1].code){ hasChange=true; break; }
+      }
+    });
+    html+=`<div class="serial-group" style="margin-bottom:12px">
+      <div class="serial-group-header" onclick="toggleSerialGroup('hc-${encodeURIComponent(nama).replace(/%/g,'x')}')">
+        <div>
+          <div style="font-weight:700;font-size:13px;color:var(--primary)">${nama}</div>
+          <div style="font-size:10px;color:var(--text3)">${serialGroups.length} nomor serial · ${totalRec} total record</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px">
+          ${hasChange?'<span class="badge" style="background:#fee2e2;color:#dc2626">⚡ Ada Perubahan Kode</span>':''}
+          <button class="btn btn-history btn-sm" onclick="event.stopPropagation();openHistory('${encodeURIComponent(nama)}','')">📜 Detail</button>
+        </div>
+      </div>
+      <div class="serial-group-body" id="hc-${encodeURIComponent(nama).replace(/%/g,'x')}">
+        <table style="width:100%;border-collapse:collapse;font-size:12px">
+          <thead><tr style="background:var(--surface2)">
+            <th style="padding:7px 10px;border-bottom:1px solid var(--border);text-align:left">No. Serial</th>
+            <th style="padding:7px 10px;border-bottom:1px solid var(--border)">Jml Record</th>
+            <th style="padding:7px 10px;border-bottom:1px solid var(--border)">Perubahan Kode</th>
+            <th style="padding:7px 10px;border-bottom:1px solid var(--border)">Status Terakhir</th>
+            <th style="padding:7px 10px;border-bottom:1px solid var(--border)">Tgl Reg Awal</th>
+            <th style="padding:7px 10px;border-bottom:1px solid var(--border)">Aksi</th>
+          </tr></thead>
+          <tbody>`;
+    serialGroups.forEach(g=>{
+      const sorted=g.records.slice().sort((a,b)=>(a.tglReg||'').localeCompare(b.tglReg||''));
+      const codes=[...new Set(sorted.map(r=>r.code).filter(Boolean))];
+      const codeChanged=codes.length>1;
+      const latestRec=sorted[sorted.length-1];
+      const firstRec=sorted.find(r=>r.tglReg)||sorted[0];
+      html+=`<tr style="border-bottom:1px solid var(--border)">
+        <td style="padding:7px 10px;font-family:monospace;font-size:11px">${g.serial||'(Kosong)'}</td>
+        <td style="padding:7px 10px;text-align:center"><span class="badge badge-blue">${g.records.length}x</span></td>
+        <td style="padding:7px 10px;text-align:center">${codeChanged?`<span class="badge" style="background:#fee2e2;color:#dc2626">⚡ ${codes.length} kode berbeda</span>`:'<span class="badge badge-active">✓ Sama</span>'}</td>
+        <td style="padding:7px 10px;text-align:center">${statusBadge(getStatus(latestRec?.tglAktif))}</td>
+        <td style="padding:7px 10px;font-size:11px">${fmtDate(firstRec?.tglReg)}</td>
+        <td style="padding:7px 10px"><button class="btn btn-history btn-sm" onclick="openHistory('${encodeURIComponent(g.nama)}','${g.serial}')">📜 Riwayat</button></td>
+      </tr>`;
+    });
+    html+=`</tbody></table></div></div>`;
+  });
+
+  el.innerHTML=html;
+}
+window.renderHistoryPage=renderHistoryPage;
+
 // ========== EXPIRING ==========
 function renderExpiringPage(){
   const days=parseInt(document.getElementById('exp-days')?.value||30);
@@ -2153,7 +2497,7 @@ function updateSysInfo(){
     <div style="margin-bottom:6px"><b>Email:</b> ${currentUser?.email||'–'}</div>
     <div style="margin-bottom:6px"><b>Role:</b> ${roleLabel}</div>
     <div style="margin-bottom:6px"><b>Total Data:</b> ${DB.length} records</div>
-    <div><b>Versi App:</b> 2.0 (Firebase)</div>`;
+    <div><b>Versi App:</b> 2.1 (Firebase + History + Universal Search)</div>`;
 }
 
 // ========== PANDUAN PENGGUNAAN ==========
@@ -2173,7 +2517,12 @@ window.toggleGuideCard=toggleGuideCard;
 
 // Keyboard shortcuts
 document.addEventListener('keydown',e=>{
-  if(e.key==='Escape'){ closeModal(); document.getElementById('modal-del').classList.remove('open'); document.getElementById('modal-add-user').classList.remove('open'); }
+  if(e.key==='Escape'){
+    closeModal();
+    closeHistory();
+    document.getElementById('modal-del').classList.remove('open');
+    document.getElementById('modal-add-user').classList.remove('open');
+  }
 });
 </script>
 </body>
