@@ -2389,7 +2389,8 @@ async function updateRecord(){
 
   showLoading('Menyimpan perubahan...');
   try {
-    // 1. Simpan snapshot data LAMA ke sub-koleksi updateHistory    const histRef = collection(db,'registrasi',editId,'updateHistory');
+    // 1. Simpan snapshot data LAMA ke sub-koleksi updateHistory
+    const histRef = collection(db,'registrasi',editId,'updateHistory');
     await addDoc(histRef, {
       snapshot: {
         nama:old.nama||'', invoice:old.invoice||'', paket:old.paket||'',
