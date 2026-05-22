@@ -160,6 +160,9 @@ tbody td{padding:9px 11px;font-size:12px;vertical-align:top}
 .badge-tipe-perpanjangan{background:#d1fae5;color:#065f46}
 .badge-tipe-reaktivasi{background:#fef3c7;color:#92400e}
 .badge-tipe-perbaikan{background:#f1f5f9;color:#475569}
+.badge-komisi-belum{background:#fef3c7;color:#92400e}
+.badge-komisi-diklaim{background:#d1fae5;color:#065f46}
+.badge-komisi-tidak{background:#f1f5f9;color:#64748b}
 
 /* TOOLBAR */
 .toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:14px}
@@ -622,6 +625,12 @@ mark.sh{background:#fef08a;color:#713f12;border-radius:2px;padding:0 1px}
               <option value="Baru">Baru saja</option>
               <option value="Perpanjangan">Perpanjangan saja</option>
             </select>
+            <select id="komisi-filter-klaim" onchange="renderKomisi()" style="font-size:12px;padding:5px 10px;background:var(--surface);color:var(--text);border:1px solid var(--border2);border-radius:6px">
+              <option value="belum">⏳ Belum Diklaim</option>
+              <option value="diklaim">✅ Sudah Diklaim</option>
+              <option value="">Semua Status</option>
+            </select>
+            <button class="btn btn-warn btn-sm" onclick="klaimSemua()" id="btn-klaim-semua" title="Klaim semua yang tampil sekarang">✓ Klaim Semua</button>
             <button class="btn btn-success btn-sm" onclick="exportKomisiCSV()">⬇ Export CSV</button>
             <button class="btn btn-secondary btn-sm" onclick="printKomisi()">🖨 Cetak</button>
           </div>
@@ -632,7 +641,8 @@ mark.sh{background:#fef08a;color:#713f12;border-radius:2px;padding:0 1px}
               <thead>
                 <tr>
                   <th>No</th><th>Tgl Registrasi</th><th>Nama Perusahaan</th><th>Invoice</th>
-                  <th>Paket Plugin</th><th>Tipe</th><th>Aktif Hingga</th><th>Status</th><th>User Input</th>
+                  <th>Paket Plugin</th><th>Tipe</th><th>Aktif Hingga</th><th>Status</th>
+                  <th>User Input</th><th>Status Komisi</th><th>Aksi</th>
                 </tr>
               </thead>
               <tbody id="komisi-body"></tbody>
@@ -721,7 +731,7 @@ mark.sh{background:#fef08a;color:#713f12;border-radius:2px;padding:0 1px}
         <div>
           <h1>Panduan Penggunaan — Plugin Registrasi</h1>
           <p>Dokumentasi lengkap cara menggunakan aplikasi Sistem Manajemen Registrasi Plugin Transaksi Customer. Ikuti langkah-langkah di bawah untuk mengoperasikan sistem dengan benar.</p>
-          <span class="guide-version">Versi App 2.0 · Firebase Edition</span>
+          <span class="guide-version">Versi App 3.0 · Firebase + Tipe Registrasi + Rekap Komisi</span>
         </div>
       </div>
 
@@ -809,10 +819,11 @@ mark.sh{background:#fef08a;color:#713f12;border-radius:2px;padding:0 1px}
               <thead><tr><th>Menu</th><th>Fungsi</th></tr></thead>
               <tbody>
                 <tr><td>📊 Dashboard</td><td>Statistik ringkasan: total registrasi, aktif, segera habis, dan expired. Dilengkapi grafik visual.</td></tr>
-                <tr><td>📝 Input Registrasi</td><td>Form untuk menambahkan data registrasi plugin baru.</td></tr>
-                <tr><td>📋 Daftar Registrasi</td><td>Tabel semua data registrasi dengan fitur pencarian, filter, edit, dan hapus.</td></tr>
+                <tr><td>📝 Input Registrasi</td><td>Form untuk menambahkan data registrasi plugin baru, termasuk memilih tipe registrasi.</td></tr>
+                <tr><td>📋 Daftar Registrasi</td><td>Tabel semua data registrasi dengan fitur pencarian, filter tipe, edit, riwayat perubahan, copy info, dan hapus.</td></tr>
                 <tr><td>📈 Laporan &amp; Analitik</td><td>Analisis distribusi paket, trend bulanan/tahunan, dan timeline registrasi.</td></tr>
                 <tr><td>⏰ Segera Habis</td><td>Daftar plugin yang akan berakhir dalam 7, 30, 60, atau 90 hari ke depan.</td></tr>
+                <tr><td>💰 Rekap Komisi</td><td>Rekapitulasi registrasi yang memiliki komisi (tipe Baru dan Perpanjangan), dengan filter periode dan export.</td></tr>
                 <tr><td>📖 Panduan Penggunaan</td><td>Halaman dokumentasi ini.</td></tr>
                 <tr><td>⚙️ Pengaturan</td><td>Manajemen user, tema, backup/restore, dan info sistem.</td></tr>
               </tbody>
@@ -957,28 +968,28 @@ mark.sh{background:#fef08a;color:#713f12;border-radius:2px;padding:0 1px}
                 <div class="guide-step-num">2</div>
                 <div class="guide-step-body">
                   <div class="guide-step-title">Isi Data Wajib</div>
-                  <div class="guide-step-desc">Field bertanda <span style="color:var(--danger);font-weight:700">*</span> wajib diisi: <strong>Nama Perusahaan</strong> dan <strong>Paket Plugin</strong>.</div>
+                  <div class="guide-step-desc">Field bertanda <span style="color:var(--danger);font-weight:700">*</span> wajib diisi: <strong>Nama Perusahaan</strong>, <strong>Paket Plugin</strong>, <strong>Tanggal Registrasi</strong>, <strong>Aktif Hingga</strong>, dan <strong>Tipe Registrasi</strong>.</div>
                 </div>
               </li>
               <li class="guide-step">
                 <div class="guide-step-num">3</div>
                 <div class="guide-step-body">
-                  <div class="guide-step-title">Pilih Paket Plugin</div>
-                  <div class="guide-step-desc">Klik dropdown <strong>Paket Plugin</strong>. Anda dapat memilih <em>lebih dari satu paket</em> sekaligus (multi-select). Paket yang dipilih akan muncul sebagai tag berwarna biru.</div>
+                  <div class="guide-step-title">Pilih Tipe Registrasi</div>
+                  <div class="guide-step-desc">Pilih salah satu dari 4 tipe yang tersedia. Tipe ini menentukan apakah registrasi masuk ke rekap komisi atau tidak. Lihat tabel tipe di bawah.</div>
                 </div>
               </li>
               <li class="guide-step">
                 <div class="guide-step-num">4</div>
                 <div class="guide-step-body">
-                  <div class="guide-step-title">Isi Informasi Tambahan</div>
-                  <div class="guide-step-desc">Lengkapi No. Invoice, Tanggal Registrasi, Tanggal Aktif Hingga, ID Komputer, Serial Number, Kode Aktivasi, dan Catatan bila tersedia.</div>
+                  <div class="guide-step-title">Isi Informasi Registrasi</div>
+                  <div class="guide-step-desc">Lengkapi No. Invoice, ID Komputer / No. Serial / Kode Aktivasi di kolom Informasi Registrasi, dan Catatan bila diperlukan.</div>
                 </div>
               </li>
               <li class="guide-step">
                 <div class="guide-step-num">5</div>
                 <div class="guide-step-body">
                   <div class="guide-step-title">Simpan Data</div>
-                  <div class="guide-step-desc">Klik tombol <strong>💾 Simpan Registrasi</strong>. Data langsung tersimpan ke Firestore dan muncul di Daftar Registrasi secara real-time.</div>
+                  <div class="guide-step-desc">Klik tombol <strong>💾 Simpan Data</strong>. Data langsung tersimpan ke Firestore dan muncul di Daftar Registrasi secara real-time.</div>
                 </div>
               </li>
             </ol>
@@ -988,8 +999,31 @@ mark.sh{background:#fef08a;color:#713f12;border-radius:2px;padding:0 1px}
 
         <div class="guide-card">
           <div class="guide-card-header" onclick="toggleGuideCard(this)">
+            <span class="guide-card-icon">🏷️</span>
+            <span class="guide-card-title">Tipe Registrasi &amp; Komisi</span>
+            <span class="guide-card-chevron">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14"><polyline points="6 9 12 15 18 9"/></svg>
+            </span>
+          </div>
+          <div class="guide-card-body">
+            <p style="font-size:12px;color:var(--text2);margin-bottom:12px">Setiap registrasi wajib memilih tipe. Tipe menentukan apakah data masuk ke menu <strong>Rekap Komisi</strong> atau tidak.</p>
+            <table class="guide-table">
+              <thead><tr><th>Tipe</th><th>Komisi</th><th>Keterangan</th></tr></thead>
+              <tbody>
+                <tr><td><span class="badge badge-tipe-baru">🆕 Baru</span></td><td style="color:var(--success);font-weight:700">✓ Ada</td><td>Customer pertama kali mendaftar plugin.</td></tr>
+                <tr><td><span class="badge badge-tipe-perpanjangan">🔄 Perpanjangan</span></td><td style="color:var(--success);font-weight:700">✓ Ada</td><td>Customer lama memperpanjang masa aktif plugin.</td></tr>
+                <tr><td><span class="badge badge-tipe-reaktivasi">♻️ Re-aktivasi</span></td><td style="color:var(--danger);font-weight:700">✗ Tidak</td><td>Customer lama yang pernah expired lalu aktif kembali.</td></tr>
+                <tr><td><span class="badge badge-tipe-perbaikan">🔧 Perbaikan</span></td><td style="color:var(--danger);font-weight:700">✗ Tidak</td><td>Ganti ID komputer, serial, atau kode — bukan transaksi baru.</td></tr>
+              </tbody>
+            </table>
+            <div class="guide-note info">💡 <strong>Data lama</strong> yang diinput sebelum fitur ini tersedia akan tampil dengan badge "–". Edit data tersebut dan pilih tipe yang sesuai agar muncul di Rekap Komisi.</div>
+          </div>
+        </div>
+
+        <div class="guide-card">
+          <div class="guide-card-header" onclick="toggleGuideCard(this)">
             <span class="guide-card-icon">✏️</span>
-            <span class="guide-card-title">Mengedit Data Registrasi</span>
+            <span class="guide-card-title">Mengedit Data Registrasi &amp; Riwayat Perubahan</span>
             <span class="guide-card-chevron">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14"><polyline points="6 9 12 15 18 9"/></svg>
             </span>
@@ -999,32 +1033,66 @@ mark.sh{background:#fef08a;color:#713f12;border-radius:2px;padding:0 1px}
               <li class="guide-step">
                 <div class="guide-step-num">1</div>
                 <div class="guide-step-body">
-                  <div class="guide-step-title">Buka Daftar Registrasi</div>
-                  <div class="guide-step-desc">Klik menu <strong>Daftar Registrasi</strong> untuk melihat semua data.</div>
+                  <div class="guide-step-title">Klik Tombol Edit (✏)</div>
+                  <div class="guide-step-desc">Di Daftar Registrasi, klik tombol <strong>✏</strong> pada baris yang ingin diedit. Modal edit akan terbuka dengan data terisi otomatis. Di bawah judul modal tertera info <em>terakhir diubah oleh siapa dan kapan</em>.</div>
                 </div>
               </li>
               <li class="guide-step">
                 <div class="guide-step-num">2</div>
                 <div class="guide-step-body">
-                  <div class="guide-step-title">Cari Data yang Ingin Diedit</div>
-                  <div class="guide-step-desc">Gunakan kotak <strong>Cari</strong> atau filter status untuk menemukan data yang diinginkan.</div>
+                  <div class="guide-step-title">Ubah Data yang Diperlukan</div>
+                  <div class="guide-step-desc">Semua field bisa diubah termasuk Tipe Registrasi. Sistem akan otomatis mendeteksi field mana saja yang berubah.</div>
                 </div>
               </li>
               <li class="guide-step">
                 <div class="guide-step-num">3</div>
                 <div class="guide-step-body">
-                  <div class="guide-step-title">Klik Tombol Edit</div>
-                  <div class="guide-step-desc">Klik tombol <strong>✏</strong> pada baris data yang ingin diedit. Form Input akan terbuka dengan data terisi otomatis.</div>
-                </div>
-              </li>
-              <li class="guide-step">
-                <div class="guide-step-num">4</div>
-                <div class="guide-step-body">
-                  <div class="guide-step-title">Ubah Data &amp; Simpan</div>
-                  <div class="guide-step-desc">Ubah data yang perlu diperbarui, lalu klik <strong>💾 Update Registrasi</strong>. Perubahan tersimpan langsung ke Firestore.</div>
+                  <div class="guide-step-title">Klik "💾 Simpan &amp; Catat History"</div>
+                  <div class="guide-step-desc">Sebelum data baru disimpan, sistem otomatis menyimpan <strong>snapshot data lama</strong> beserta daftar field yang berubah ke riwayat. Data lama tidak hilang — tersimpan sebagai history.</div>
                 </div>
               </li>
             </ol>
+            <div class="guide-note success">✅ Jika tidak ada perubahan sama sekali, sistem akan menampilkan pesan <em>"Tidak ada perubahan data"</em> dan tidak menyimpan history kosong.</div>
+
+            <p style="font-size:12px;font-weight:700;margin:14px 0 8px">Melihat Riwayat Perubahan:</p>
+            <ol class="guide-steps">
+              <li class="guide-step">
+                <div class="guide-step-num">1</div>
+                <div class="guide-step-body">
+                  <div class="guide-step-title">Klik Tombol 🕐</div>
+                  <div class="guide-step-desc">Setiap baris di Daftar Registrasi memiliki tombol <strong>🕐</strong> di kolom Aksi. Klik untuk membuka riwayat perubahan data tersebut.</div>
+                </div>
+              </li>
+              <li class="guide-step">
+                <div class="guide-step-num">2</div>
+                <div class="guide-step-body">
+                  <div class="guide-step-title">Baca Timeline Perubahan</div>
+                  <div class="guide-step-desc">Setiap entri riwayat menampilkan: tanggal &amp; jam perubahan, siapa yang mengubah, dan untuk setiap field yang berubah — <span style="color:var(--danger)">nilai sebelum</span> vs <span style="color:var(--success)">nilai sesudah</span>.</div>
+                </div>
+              </li>
+            </ol>
+            <div class="guide-note danger">🔒 <strong>Catatan Firestore Rules:</strong> Fitur riwayat perubahan membutuhkan izin akses sub-koleksi <code>updateHistory</code>. Pastikan Firestore Security Rules sudah mengizinkan akses ke <code>match /registrasi/{id}/updateHistory/{h}</code>.</div>
+          </div>
+        </div>
+
+        <div class="guide-card">
+          <div class="guide-card-header" onclick="toggleGuideCard(this)">
+            <span class="guide-card-icon">⎘</span>
+            <span class="guide-card-title">Copy Informasi Registrasi</span>
+            <span class="guide-card-chevron">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14"><polyline points="6 9 12 15 18 9"/></svg>
+            </span>
+          </div>
+          <div class="guide-card-body">
+            <p style="font-size:12px;color:var(--text2);margin-bottom:12px">Di kolom <strong>Informasi Registrasi</strong> pada Daftar Registrasi, terdapat fitur copy cepat:</p>
+            <table class="guide-table">
+              <thead><tr><th>Cara</th><th>Yang Disalin</th></tr></thead>
+              <tbody>
+                <tr><td>Klik langsung pada teks <strong>ID Komputer / No. Serial / Kode Reg</strong></td><td>Hanya nilai field yang diklik. Teks berubah warna hijau sejenak sebagai konfirmasi.</td></tr>
+                <tr><td>Klik tombol <strong>⎘ Copy Semua</strong></td><td>Semua info registrasi sekaligus dalam format: <code>ID Komputer: ...<br>No. Serial: ...<br>Kode Reg: ...</code></td></tr>
+              </tbody>
+            </table>
+            <div class="guide-note info">💡 Fitur copy membutuhkan izin clipboard dari browser. Jika muncul pesan error, pastikan browser mengizinkan akses clipboard untuk situs ini.</div>
           </div>
         </div>
 
@@ -1041,7 +1109,7 @@ mark.sh{background:#fef08a;color:#713f12;border-radius:2px;padding:0 1px}
               <li class="guide-step">
                 <div class="guide-step-num">1</div>
                 <div class="guide-step-body">
-                  <div class="guide-step-title">Klik Tombol Hapus</div>
+                  <div class="guide-step-title">Klik Tombol Hapus (🗑)</div>
                   <div class="guide-step-desc">Di Daftar Registrasi, klik tombol <strong>🗑</strong> pada baris data yang ingin dihapus.</div>
                 </div>
               </li>
@@ -1053,7 +1121,7 @@ mark.sh{background:#fef08a;color:#713f12;border-radius:2px;padding:0 1px}
                 </div>
               </li>
             </ol>
-            <div class="guide-note danger">🚨 <strong>Perhatian!</strong> Penghapusan data bersifat permanen dan tidak dapat dibatalkan. Pastikan data sudah tidak diperlukan sebelum menghapus.</div>
+            <div class="guide-note danger">🚨 <strong>Perhatian!</strong> Penghapusan data bersifat permanen dan tidak dapat dibatalkan. Riwayat perubahan (sub-koleksi updateHistory) juga ikut terhapus.</div>
           </div>
         </div>
 
@@ -1069,9 +1137,11 @@ mark.sh{background:#fef08a;color:#713f12;border-radius:2px;padding:0 1px}
             <table class="guide-table">
               <thead><tr><th>Fitur</th><th>Cara Penggunaan</th></tr></thead>
               <tbody>
-                <tr><td><strong>Kotak Cari</strong></td><td>Ketik kata kunci (nama perusahaan, invoice, atau paket). Hasil muncul real-time saat mengetik.</td></tr>
-                <tr><td><strong>Filter Status</strong></td><td>Pilih dropdown: Semua Status / Aktif / Segera Habis / Kadaluarsa.</td></tr>
-                <tr><td><strong>Filter Paket</strong></td><td>Pilih dropdown paket untuk menampilkan registrasi dengan paket tertentu.</td></tr>
+                <tr><td><strong>Kotak Cari</strong></td><td>Ketik kata kunci apa saja — nama, invoice, paket, serial, kode reg, ID komputer, catatan, tipe. Hasil muncul real-time.</td></tr>
+                <tr><td><strong>Filter Status</strong></td><td>Pilih: Semua Status / Aktif / Segera Habis / Kadaluarsa.</td></tr>
+                <tr><td><strong>Filter Paket</strong></td><td>Tampilkan hanya registrasi dengan paket plugin tertentu.</td></tr>
+                <tr><td><strong>Filter Tipe</strong></td><td>Tampilkan hanya tipe tertentu: Baru, Perpanjangan, Re-aktivasi, atau Perbaikan.</td></tr>
+                <tr><td><strong>Filter Tanggal</strong></td><td>Filter berdasarkan rentang tanggal registrasi (dari – sampai).</td></tr>
                 <tr><td><strong>Paginasi</strong></td><td>Data ditampilkan 15 baris per halaman. Gunakan tombol halaman di bawah tabel untuk navigasi.</td></tr>
               </tbody>
             </table>
@@ -1151,6 +1221,43 @@ mark.sh{background:#fef08a;color:#713f12;border-radius:2px;padding:0 1px}
               </li>
             </ol>
             <div class="guide-note info">💡 Widget "Segera Habis 30 Hari" juga tersedia di Dashboard untuk pemantauan cepat tanpa harus berpindah halaman.</div>
+          </div>
+        </div>
+
+        <div class="guide-card">
+          <div class="guide-card-header" onclick="toggleGuideCard(this)">
+            <span class="guide-card-icon">💰</span>
+            <span class="guide-card-title">Rekap Komisi</span>
+            <span class="guide-card-chevron">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14"><polyline points="6 9 12 15 18 9"/></svg>
+            </span>
+          </div>
+          <div class="guide-card-body">
+            <p style="font-size:12px;color:var(--text2);margin-bottom:12px">Menu <strong>💰 Rekap Komisi</strong> menampilkan khusus data yang memiliki komisi — yaitu tipe <span class="badge badge-tipe-baru">🆕 Baru</span> dan <span class="badge badge-tipe-perpanjangan">🔄 Perpanjangan</span>. Data tipe Re-aktivasi dan Perbaikan tidak akan muncul di sini.</p>
+            <ol class="guide-steps">
+              <li class="guide-step">
+                <div class="guide-step-num">1</div>
+                <div class="guide-step-body">
+                  <div class="guide-step-title">Buka Menu Rekap Komisi</div>
+                  <div class="guide-step-desc">Klik menu <strong>💰 Rekap Komisi</strong> di sidebar. Halaman akan langsung menampilkan semua data Baru + Perpanjangan.</div>
+                </div>
+              </li>
+              <li class="guide-step">
+                <div class="guide-step-num">2</div>
+                <div class="guide-step-body">
+                  <div class="guide-step-title">Filter Periode</div>
+                  <div class="guide-step-desc">Gunakan dropdown <strong>Bulan</strong> dan <strong>Tahun</strong> untuk memfilter per periode. Dropdown <strong>Tipe</strong> untuk melihat Baru atau Perpanjangan saja.</div>
+                </div>
+              </li>
+              <li class="guide-step">
+                <div class="guide-step-num">3</div>
+                <div class="guide-step-body">
+                  <div class="guide-step-title">Export atau Cetak</div>
+                  <div class="guide-step-desc">Klik <strong>⬇ Export CSV</strong> untuk mengunduh file spreadsheet bernama <code>rekap_komisi_[tahun]-[bulan].csv</code>, atau klik <strong>🖨 Cetak</strong> untuk membuka halaman cetak yang sudah diformat rapi.</div>
+                </div>
+              </li>
+            </ol>
+            <div class="guide-note">⚠️ Pastikan semua data sudah diisi tipe registrasinya dengan benar. Data tanpa tipe (badge "–") tidak akan muncul di Rekap Komisi meskipun seharusnya ada komisi.</div>
           </div>
         </div>
       </div>
@@ -1251,14 +1358,23 @@ mark.sh{background:#fef08a;color:#713f12;border-radius:2px;padding:0 1px}
             <div class="guide-faq-q">Q: Bagaimana cara memilih beberapa paket plugin sekaligus?</div>
             <div class="guide-faq-a">A: Di form Input Registrasi, klik pada dropdown Paket Plugin lalu klik setiap paket yang ingin dipilih. Setiap paket yang dipilih akan muncul sebagai tag biru. Klik tanda ✕ pada tag untuk membatalkan pilihan.</div>
 
+            <div class="guide-faq-q">Q: Apa perbedaan tipe Re-aktivasi dan Perpanjangan?</div>
+            <div class="guide-faq-a">A: <strong>Perpanjangan</strong> dilakukan sebelum atau saat masa aktif berakhir — plugin masih aktif, customer memperpanjang. <strong>Re-aktivasi</strong> dilakukan setelah plugin sudah expired — customer mengaktifkan kembali setelah ada jeda tidak aktif. Perpanjangan ada komisi, Re-aktivasi tidak ada komisi.</div>
+
+            <div class="guide-faq-q">Q: Data lama saya tidak muncul di Rekap Komisi, bagaimana?</div>
+            <div class="guide-faq-a">A: Data yang diinput sebelum fitur Tipe Registrasi tersedia tidak memiliki nilai tipe, sehingga tidak masuk rekap komisi. Solusinya: buka Daftar Registrasi, klik tombol ✏ pada data tersebut, pilih Tipe Registrasi yang sesuai, lalu simpan.</div>
+
+            <div class="guide-faq-q">Q: Muncul error "Missing or insufficient permissions" saat membuka riwayat 🕐?</div>
+            <div class="guide-faq-a">A: Firestore Security Rules belum mengizinkan akses sub-koleksi <code>updateHistory</code>. Masuk ke Firebase Console → Firestore → Rules, dan tambahkan rule: <code>match /registrasi/{id}/updateHistory/{h} &#123; allow read, write: if request.auth != null; &#125;</code></div>
+
+            <div class="guide-faq-q">Q: Apakah riwayat perubahan ikut terhapus jika data dihapus?</div>
+            <div class="guide-faq-a">A: Ya. Saat data registrasi dihapus dari Firestore, sub-koleksi updateHistory yang ada di dalamnya juga terhapus bersama. Lakukan backup terlebih dahulu jika perlu menyimpan riwayat tersebut.</div>
+
             <div class="guide-faq-q">Q: Bisakah User biasa menghapus data?</div>
             <div class="guide-faq-a">A: Ya, User biasa dapat menghapus data registrasi. Namun hanya Admin yang dapat mengelola user lain dan melakukan import/export massal.</div>
 
             <div class="guide-faq-q">Q: Apa yang terjadi saat restore, apakah data lama terhapus?</div>
             <div class="guide-faq-a">A: Tidak. Restore bersifat additive (menambahkan). Data dari file JSON akan ditambahkan ke Firestore tanpa menghapus data yang sudah ada. Jika ada Firestore ID yang sama, data akan di-merge.</div>
-
-            <div class="guide-faq-q">Q: Saya tidak bisa melihat tombol Import Excel, kenapa?</div>
-            <div class="guide-faq-a">A: Tombol Import Excel hanya tampil untuk pengguna dengan role <strong>Admin</strong>. Jika role Anda adalah User biasa, tombol tersebut disembunyikan secara otomatis.</div>
           </div>
         </div>
 
@@ -1820,6 +1936,8 @@ async function saveRecord(){
     tglReg, tglAktif,
     tipe,
     adaKomisi: (tipe==='Baru'||tipe==='Perpanjangan'),
+    statusKomisi: (tipe==='Baru'||tipe==='Perpanjangan') ? 'belum' : 'tidak_berlaku',
+    tipeAwalKomisi: (tipe==='Baru'||tipe==='Perpanjangan') ? tipe : '',
     idKomp: '',
     serial: '',
     code: document.getElementById('f-reginfo').value.trim(),
@@ -2271,8 +2389,7 @@ async function updateRecord(){
 
   showLoading('Menyimpan perubahan...');
   try {
-    // 1. Simpan snapshot data LAMA ke sub-koleksi updateHistory
-    const histRef = collection(db,'registrasi',editId,'updateHistory');
+    // 1. Simpan snapshot data LAMA ke sub-koleksi updateHistory    const histRef = collection(db,'registrasi',editId,'updateHistory');
     await addDoc(histRef, {
       snapshot: {
         nama:old.nama||'', invoice:old.invoice||'', paket:old.paket||'',
@@ -2286,7 +2403,24 @@ async function updateRecord(){
       changedAt: serverTimestamp()
     });
 
-    // 2. Update dokumen utama dengan data BARU
+    // 2. Hitung statusKomisi baru berdasarkan logika flag
+    const sudahDiklaim = old.statusKomisi === 'diklaim';
+    const newAdaKomisi = (newTipe==='Baru'||newTipe==='Perpanjangan');
+    const pernahAdaKomisi = old.tipeAwalKomisi === 'Baru' || old.tipeAwalKomisi === 'Perpanjangan'
+      || (old.tipe==='Baru'||old.tipe==='Perpanjangan');
+    let newStatusKomisi;
+    if(sudahDiklaim){
+      // Sudah diklaim → final, tidak masuk rekap lagi apapun perubahannya
+      newStatusKomisi = 'diklaim';
+    } else if(newAdaKomisi || pernahAdaKomisi){
+      // Pernah atau sekarang ada komisi & belum diklaim → tetap masuk rekap
+      newStatusKomisi = 'belum';
+    } else {
+      // Tidak pernah ada komisi & belum diklaim
+      newStatusKomisi = 'tidak_berlaku';
+    }
+
+    // 3. Update dokumen utama dengan data BARU
     await updateDoc(doc(db,'registrasi',editId),{
       nama: newNama,
       invoice: newInvoice,
@@ -2298,7 +2432,9 @@ async function updateRecord(){
       code: newReginfo,
       catatan: newCatatan,
       tipe: newTipe,
-      adaKomisi: (newTipe==='Baru'||newTipe==='Perpanjangan'),
+      adaKomisi: newAdaKomisi,
+      statusKomisi: newStatusKomisi,
+      tipeAwalKomisi: old.tipeAwalKomisi || (newAdaKomisi ? newTipe : ''),
       updatedAt: serverTimestamp(),
       updatedBy: currentUser?.displayName||currentUser?.email||'–'
     });
@@ -2722,20 +2858,37 @@ async function importExcelToFirestore(){
 window.importExcelToFirestore=importExcelToFirestore;
 
 // ========== REKAP KOMISI ==========
+function komisiStatusBadge(s){
+  if(s==='diklaim') return '<span class="badge badge-komisi-diklaim">✅ Diklaim</span>';
+  if(s==='tidak_berlaku') return '<span class="badge badge-komisi-tidak">— Tidak Berlaku</span>';
+  return '<span class="badge badge-komisi-belum">⏳ Belum Diklaim</span>';
+}
+
 function getKomisiData(){
-  const bulan = document.getElementById('komisi-filter-bulan')?.value||'';
-  const tahun = document.getElementById('komisi-filter-tahun')?.value||'';
-  const tipe  = document.getElementById('komisi-filter-tipe')?.value||'';
+  const bulan  = document.getElementById('komisi-filter-bulan')?.value||'';
+  const tahun  = document.getElementById('komisi-filter-tahun')?.value||'';
+  const tipe   = document.getElementById('komisi-filter-tipe')?.value||'';
+  const klaim  = document.getElementById('komisi-filter-klaim')?.value;
+  // klaim: 'belum' | 'diklaim' | '' (semua)
   return DB.filter(r=>{
-    const boleh = r.adaKomisi===true || r.tipe==='Baru' || r.tipe==='Perpanjangan';
-    if(!boleh) return false;
-    if(tipe && r.tipe!==tipe) return false;
+    // Tampilkan berdasarkan statusKomisi, bukan tipe saat ini
+    // 'tidak_berlaku' = tidak pernah ada komisi & belum diklaim → tidak masuk
+    const sk = r.statusKomisi || (
+      (r.adaKomisi===true||r.tipe==='Baru'||r.tipe==='Perpanjangan') ? 'belum' : 'tidak_berlaku'
+    );
+    if(sk==='tidak_berlaku') return false;
+    if(klaim==='belum'   && sk!=='belum')   return false;
+    if(klaim==='diklaim' && sk!=='diklaim') return false;
+    // Filter tipe hanya berlaku jika tipe saat ini cocok atau tipeAwal cocok
+    if(tipe && r.tipe!==tipe && r.tipeAwalKomisi!==tipe) return false;
     if(bulan && r.tglReg && r.tglReg.substring(5,7)!==bulan) return false;
     if(tahun && r.tglReg && r.tglReg.substring(0,4)!==tahun) return false;
     return true;
   }).sort((a,b)=>(a.tglReg||'').localeCompare(b.tglReg||''));
 }
+
 function renderKomisi(){
+  // Isi dropdown tahun
   const tahunSel=document.getElementById('komisi-filter-tahun');
   if(tahunSel){
     const cur=tahunSel.value;
@@ -2743,42 +2896,140 @@ function renderKomisi(){
     tahunSel.innerHTML='<option value="">Semua Tahun</option>'+tahuns.map(t=>`<option value="${t}" ${cur===t?'selected':''}>${t}</option>`).join('');
     if(cur) tahunSel.value=cur;
   }
-  const data=getKomisiData();
-  const totalBaru=data.filter(r=>r.tipe==='Baru').length;
-  const totalPerp=data.filter(r=>r.tipe==='Perpanjangan').length;
+
+  const filterKlaim = document.getElementById('komisi-filter-klaim')?.value;
+  const data = getKomisiData();
+  const totalBaru    = data.filter(r=>r.tipe==='Baru').length;
+  const totalPerp    = data.filter(r=>r.tipe==='Perpanjangan').length;
+  const totalBelum   = DB.filter(r=>(r.tipe==='Baru'||r.tipe==='Perpanjangan')&&(r.statusKomisi||'belum')==='belum').length;
+  const totalDiklaim = DB.filter(r=>r.statusKomisi==='diklaim').length;
+
+  // Stat cards
   const grid=document.getElementById('komisi-stat-grid');
   if(grid) grid.innerHTML=`
-    <div class="stat-card"><div class="stat-label">Total Ada Komisi</div><div class="stat-value" style="color:var(--primary)">${data.length}</div><div class="stat-sub">record dalam filter ini</div></div>
-    <div class="stat-card"><div class="stat-label">🆕 Baru</div><div class="stat-value" style="color:#1e40af">${totalBaru}</div><div class="stat-sub">registrasi customer baru</div></div>
-    <div class="stat-card"><div class="stat-label">🔄 Perpanjangan</div><div class="stat-value" style="color:#065f46">${totalPerp}</div><div class="stat-sub">perpanjang masa aktif</div></div>
-    <div class="stat-card"><div class="stat-label">Tanpa Komisi</div><div class="stat-value" style="color:var(--text3)">${DB.filter(r=>r.tipe==='Re-aktivasi'||r.tipe==='Perbaikan').length}</div><div class="stat-sub">Re-aktivasi & Perbaikan</div></div>`;
-  const tbody=document.getElementById('komisi-body');
+    <div class="stat-card"><div class="stat-label">⏳ Belum Diklaim</div><div class="stat-value" style="color:var(--warn)">${totalBelum}</div><div class="stat-sub">menunggu klaim</div></div>
+    <div class="stat-card"><div class="stat-label">✅ Sudah Diklaim</div><div class="stat-value" style="color:var(--success)">${totalDiklaim}</div><div class="stat-sub">komisi terklaim</div></div>
+    <div class="stat-card"><div class="stat-label">🆕 Baru (filter)</div><div class="stat-value" style="color:#1e40af">${totalBaru}</div><div class="stat-sub">dalam tampilan ini</div></div>
+    <div class="stat-card"><div class="stat-label">🔄 Perpanjangan (filter)</div><div class="stat-value" style="color:#065f46">${totalPerp}</div><div class="stat-sub">dalam tampilan ini</div></div>`;
+
+  // Tombol Klaim Semua — hanya aktif jika ada data belum diklaim
+  const btnKlaim = document.getElementById('btn-klaim-semua');
+  const adaBelum = data.some(r=>(r.statusKomisi||'belum')==='belum');
+  if(btnKlaim) btnKlaim.style.display = (filterKlaim==='diklaim') ? 'none' : '';
+
+  const tbody = document.getElementById('komisi-body');
   if(!data.length){
-    tbody.innerHTML='<tr><td colspan="9" style="text-align:center;padding:32px;color:var(--text3)">Tidak ada data komisi untuk filter ini</td></tr>';
+    tbody.innerHTML=`<tr><td colspan="11" style="text-align:center;padding:32px;color:var(--text3)">Tidak ada data komisi untuk filter ini</td></tr>`;
     document.getElementById('komisi-info').textContent='';
     return;
   }
-  tbody.innerHTML=data.map((r,i)=>`<tr>
-    <td style="color:var(--text3)">${i+1}</td>
-    <td>${fmtDate(r.tglReg)}</td>
-    <td class="td-name">${r.nama||'–'}</td>
-    <td>${r.invoice||'–'}</td>
-    <td>${(r.paket||'–').split(',').map(p=>`<span class="badge badge-blue" style="margin:1px">${p.trim()}</span>`).join(' ')}</td>
-    <td>${tipeBadge(r.tipe)}</td>
-    <td>${fmtDate(r.tglAktif)}</td>
-    <td>${statusBadge(getStatus(r.tglAktif))}</td>
-    <td style="font-size:11px;color:var(--text2)">${r.userInput||'–'}</td>
-  </tr>`).join('');
-  document.getElementById('komisi-info').textContent=`${data.length} data · ${totalBaru} Baru · ${totalPerp} Perpanjangan`;
+
+  tbody.innerHTML=data.map((r,i)=>{
+    const sk = r.statusKomisi || 'belum';
+    const sudahKlaim = sk==='diklaim';
+    const tipeSekarang = r.tipe||'–';
+    const tipeAwal = r.tipeAwalKomisi||'';
+    const tipeChanged = tipeAwal && tipeAwal!==tipeSekarang;
+    const tipeTampil = tipeChanged
+      ? `${tipeBadge(tipeAwal)} <span style="font-size:9px;color:var(--text3)">→ skrg: ${tipeBadge(tipeSekarang)}</span>`
+      : tipeBadge(tipeSekarang);
+    const klaimInfo = sudahKlaim && r.klaimedBy
+      ? `<div style="font-size:10px;color:var(--text3);margin-top:3px">oleh ${r.klaimedBy}<br>${r.klaimedAt?.toDate?fmtDatetime(r.klaimedAt.toDate()):'–'}</div>`
+      : '';
+    return `<tr style="${sudahKlaim?'opacity:.65':''}">
+      <td style="color:var(--text3)">${i+1}</td>
+      <td>${fmtDate(r.tglReg)}</td>
+      <td class="td-name">${r.nama||'–'}</td>
+      <td>${r.invoice||'–'}</td>
+      <td>${(r.paket||'–').split(',').map(p=>`<span class="badge badge-blue" style="margin:1px">${p.trim()}</span>`).join(' ')}</td>
+      <td>${tipeTampil}</td>
+      <td>${fmtDate(r.tglAktif)}</td>
+      <td>${statusBadge(getStatus(r.tglAktif))}</td>
+      <td style="font-size:11px;color:var(--text2)">${r.userInput||'–'}</td>
+      <td>${komisiStatusBadge(sk)}${klaimInfo}</td>
+      <td>
+        ${!sudahKlaim
+          ? `<button class="btn btn-success btn-sm" onclick="klaimKomisi('${r.firestoreId}')" title="Tandai sudah diklaim">✓ Klaim</button>`
+          : `<button class="btn btn-secondary btn-sm" onclick="batalKlaim('${r.firestoreId}')" title="Batalkan klaim">↺ Batal</button>`
+        }
+      </td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('komisi-info').textContent=
+    `${data.length} data · ${totalBaru} Baru · ${totalPerp} Perpanjangan`;
 }
 window.renderKomisi=renderKomisi;
+
+async function klaimKomisi(fid){
+  const r=DB.find(x=>x.firestoreId===fid); if(!r) return;
+  showLoading('Menyimpan klaim...');
+  try {
+    await updateDoc(doc(db,'registrasi',fid),{
+      statusKomisi: 'diklaim',
+      klaimedBy: currentUser?.displayName||currentUser?.email||'–',
+      klaimedByEmail: currentUser?.email||'–',
+      klaimedAt: serverTimestamp()
+    });
+    hideLoading();
+    showToast(`Komisi ${r.nama} berhasil diklaim!`,'success');
+  } catch(e){ hideLoading(); showToast('Gagal klaim: '+e.message,'danger'); }
+}
+window.klaimKomisi=klaimKomisi;
+
+async function batalKlaim(fid){
+  const r=DB.find(x=>x.firestoreId===fid); if(!r) return;
+  if(!confirm(`Batalkan klaim komisi untuk ${r.nama}?`)) return;
+  showLoading('Membatalkan klaim...');
+  try {
+    await updateDoc(doc(db,'registrasi',fid),{
+      statusKomisi: 'belum',
+      klaimedBy: '',
+      klaimedByEmail: '',
+      klaimedAt: null
+    });
+    hideLoading();
+    showToast(`Klaim komisi ${r.nama} dibatalkan.`,'info');
+  } catch(e){ hideLoading(); showToast('Gagal batal klaim: '+e.message,'danger'); }
+}
+window.batalKlaim=batalKlaim;
+
+async function klaimSemua(){
+  const data=getKomisiData().filter(r=>(r.statusKomisi||'belum')==='belum');
+  if(!data.length) return showToast('Tidak ada data yang perlu diklaim.','info');
+  if(!confirm(`Klaim ${data.length} komisi sekaligus?\n\nAksi ini akan menandai semua data yang tampil saat ini sebagai "Sudah Diklaim".`)) return;
+  showLoading(`Mengklaim ${data.length} komisi...`);
+  try {
+    const batchSize=400;
+    for(let i=0;i<data.length;i+=batchSize){
+      const batch=writeBatch(db);
+      data.slice(i,i+batchSize).forEach(r=>{
+        batch.update(doc(db,'registrasi',r.firestoreId),{
+          statusKomisi:'diklaim',
+          klaimedBy: currentUser?.displayName||currentUser?.email||'–',
+          klaimedByEmail: currentUser?.email||'–',
+          klaimedAt: serverTimestamp()
+        });
+      });
+      await batch.commit();
+    }
+    hideLoading();
+    showToast(`${data.length} komisi berhasil diklaim sekaligus!`,'success');
+  } catch(e){ hideLoading(); showToast('Gagal klaim semua: '+e.message,'danger'); }
+}
+window.klaimSemua=klaimSemua;
 
 function exportKomisiCSV(){
   const data=getKomisiData();
   const bulan=document.getElementById('komisi-filter-bulan')?.value||'';
   const tahun=document.getElementById('komisi-filter-tahun')?.value||'';
-  const headers=['No','Tgl Registrasi','Nama Perusahaan','Invoice','Paket Plugin','Tipe','Aktif Hingga','Status','User Input'];
-  const rows=data.map((r,i)=>[i+1,r.tglReg,`"${r.nama}"`,r.invoice,`"${r.paket}"`,r.tipe,r.tglAktif,getStatus(r.tglAktif),`"${r.userInput||''}"`]);
+  const headers=['No','Tgl Registrasi','Nama Perusahaan','Invoice','Paket Plugin','Tipe','Aktif Hingga','Status','User Input','Status Komisi','Diklaim Oleh','Tgl Klaim'];
+  const rows=data.map((r,i)=>[
+    i+1, r.tglReg, `"${r.nama}"`, r.invoice, `"${r.paket}"`, r.tipe,
+    r.tglAktif, getStatus(r.tglAktif), `"${r.userInput||''}"`,
+    r.statusKomisi||'belum', `"${r.klaimedBy||''}"`,
+    r.klaimedAt?.toDate ? fmtDatetime(r.klaimedAt.toDate()) : ''
+  ]);
   const csv=[headers,...rows].map(r=>r.join(',')).join('\n');
   const suffix=(tahun||'semua')+(bulan?'-'+bulan:'');
   const a=document.createElement('a');
@@ -2796,18 +3047,22 @@ function printKomisi(){
   const tahun=document.getElementById('komisi-filter-tahun')?.value||'Semua Tahun';
   const totalBaru=data.filter(r=>r.tipe==='Baru').length;
   const totalPerp=data.filter(r=>r.tipe==='Perpanjangan').length;
-  const w=window.open('','_blank','width=900,height=700');
+  const totalDiklaim=data.filter(r=>r.statusKomisi==='diklaim').length;
+  const w=window.open('','_blank','width=1000,height=700');
   w.document.write(`<!DOCTYPE html><html lang="id"><head><meta charset="UTF-8"><title>Rekap Komisi</title>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
   <style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:'Plus Jakarta Sans',sans-serif;padding:24px;font-size:13px;color:#0f172a}
   h1{font-size:18px;font-weight:700;margin-bottom:4px}.sub{font-size:12px;color:#64748b;margin-bottom:20px}
-  .stats{display:flex;gap:16px;margin-bottom:20px}.stat{background:#f0f4fa;border-radius:8px;padding:10px 16px;min-width:120px}
-  .stat .v{font-size:22px;font-weight:700;color:#1e40af}.stat .l{font-size:10px;color:#64748b;text-transform:uppercase;letter-spacing:.04em;margin-top:2px}
-  table{width:100%;border-collapse:collapse;font-size:12px}
-  th{background:#f0f4fa;padding:8px 10px;text-align:left;font-size:10px;font-weight:700;color:#475569;border-bottom:2px solid #e2e8f0;text-transform:uppercase;letter-spacing:.04em}
-  td{padding:8px 10px;border-bottom:1px solid #e2e8f0;vertical-align:top}
-  .badge{display:inline-flex;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:700}
+  .stats{display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap}
+  .stat{background:#f0f4fa;border-radius:8px;padding:10px 16px;min-width:110px}
+  .stat .v{font-size:20px;font-weight:700}.stat .l{font-size:10px;color:#64748b;text-transform:uppercase;letter-spacing:.04em;margin-top:2px}
+  table{width:100%;border-collapse:collapse;font-size:11px}
+  th{background:#f0f4fa;padding:7px 9px;text-align:left;font-size:9px;font-weight:700;color:#475569;border-bottom:2px solid #e2e8f0;text-transform:uppercase;letter-spacing:.04em}
+  td{padding:7px 9px;border-bottom:1px solid #e2e8f0;vertical-align:top}
+  .badge{display:inline-flex;padding:2px 7px;border-radius:20px;font-size:10px;font-weight:700}
   .baru{background:#dbeafe;color:#1e40af}.perp{background:#d1fae5;color:#065f46}
+  .diklaim{background:#d1fae5;color:#065f46}.belum{background:#fef3c7;color:#92400e}
+  tr.dim{opacity:.55}
   @media print{body{padding:0}}</style></head><body>
   <h1>💰 Rekap Komisi Registrasi</h1>
   <div class="sub">Periode: ${bulanTxt} ${tahun} · Dicetak: ${new Date().toLocaleDateString('id-ID',{day:'2-digit',month:'long',year:'numeric'})}</div>
@@ -2815,13 +3070,21 @@ function printKomisi(){
     <div class="stat"><div class="v">${data.length}</div><div class="l">Total</div></div>
     <div class="stat"><div class="v" style="color:#1e40af">${totalBaru}</div><div class="l">🆕 Baru</div></div>
     <div class="stat"><div class="v" style="color:#065f46">${totalPerp}</div><div class="l">🔄 Perpanjangan</div></div>
+    <div class="stat"><div class="v" style="color:#065f46">${totalDiklaim}</div><div class="l">✅ Diklaim</div></div>
+    <div class="stat"><div class="v" style="color:#d97706">${data.length-totalDiklaim}</div><div class="l">⏳ Belum</div></div>
   </div>
-  <table><thead><tr><th>No</th><th>Tgl Reg</th><th>Nama Perusahaan</th><th>Invoice</th><th>Paket</th><th>Tipe</th><th>Aktif Hingga</th><th>User Input</th></tr></thead>
-  <tbody>${data.map((r,i)=>`<tr><td>${i+1}</td><td>${r.tglReg||'–'}</td><td><strong>${r.nama||'–'}</strong></td>
-    <td>${r.invoice||'–'}</td><td>${r.paket||'–'}</td>
-    <td><span class="badge ${r.tipe==='Baru'?'baru':'perp'}">${r.tipe}</span></td>
-    <td>${r.tglAktif||'–'}</td><td>${r.userInput||'–'}</td></tr>`).join('')}
-  </tbody></table>
+  <table><thead><tr><th>No</th><th>Tgl Reg</th><th>Nama Perusahaan</th><th>Invoice</th><th>Paket</th><th>Tipe</th><th>Aktif Hingga</th><th>User Input</th><th>Status Komisi</th><th>Diklaim Oleh</th></tr></thead>
+  <tbody>${data.map((r,i)=>{
+    const sk=r.statusKomisi||'belum';
+    return `<tr class="${sk==='diklaim'?'dim':''}">
+      <td>${i+1}</td><td>${r.tglReg||'–'}</td><td><strong>${r.nama||'–'}</strong></td>
+      <td>${r.invoice||'–'}</td><td>${r.paket||'–'}</td>
+      <td><span class="badge ${r.tipe==='Baru'?'baru':'perp'}">${r.tipe}</span></td>
+      <td>${r.tglAktif||'–'}</td><td>${r.userInput||'–'}</td>
+      <td><span class="badge ${sk==='diklaim'?'diklaim':'belum'}">${sk==='diklaim'?'✅ Diklaim':'⏳ Belum'}</span></td>
+      <td style="font-size:10px">${r.klaimedBy||'–'}</td>
+    </tr>`;
+  }).join('')}</tbody></table>
   <script>window.onload=()=>window.print()<\/script></body></html>`);
   w.document.close();
 }
@@ -2882,7 +3145,7 @@ function updateSysInfo(){
     <div style="margin-bottom:6px"><b>Email:</b> ${currentUser?.email||'–'}</div>
     <div style="margin-bottom:6px"><b>Role:</b> ${roleLabel}</div>
     <div style="margin-bottom:6px"><b>Total Data:</b> ${DB.length} records</div>
-    <div><b>Versi App:</b> 2.1 (Firebase + History + Universal Search)</div>`;
+    <div><b>Versi App:</b> 3.0 (Firebase + Tipe Registrasi + Rekap Komisi + History Update)</div>`;
 }
 
 // ========== PANDUAN PENGGUNAAN ==========
