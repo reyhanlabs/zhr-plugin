@@ -156,6 +156,10 @@ tbody td{padding:9px 11px;font-size:12px;vertical-align:top}
 .badge-expiring{background:var(--warn-bg);color:var(--warn)}
 .badge-blue{background:var(--primary-light);color:var(--primary)}
 .badge-gray{background:var(--surface2);color:var(--text2)}
+.badge-tipe-baru{background:#dbeafe;color:#1e40af}
+.badge-tipe-perpanjangan{background:#d1fae5;color:#065f46}
+.badge-tipe-reaktivasi{background:#fef3c7;color:#92400e}
+.badge-tipe-perbaikan{background:#f1f5f9;color:#475569}
 
 /* TOOLBAR */
 .toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:14px}
@@ -344,6 +348,11 @@ mark.sh{background:#fef08a;color:#713f12;border-radius:2px;padding:0 1px}
     <span class="nav-label">Segera Habis</span>
     <div class="nav-tooltip">Segera Habis</div>
   </div>
+  <div class="nav-item" onclick="gotoPage('komisi',this)" id="nav-komisi">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+    <span class="nav-label">Rekap Komisi</span>
+    <div class="nav-tooltip">Rekap Komisi</div>
+  </div>
 
 
   <div class="nav-section-label">Sistem</div>
@@ -466,6 +475,16 @@ mark.sh{background:#fef08a;color:#713f12;border-radius:2px;padding:0 1px}
             </div>
           </div>
           <div class="form-group">
+            <label class="form-label">Tipe Registrasi <span class="req">*</span></label>
+            <select id="f-tipe">
+              <option value="">-- Pilih Tipe --</option>
+              <option value="Baru">🆕 Baru — customer pertama kali daftar (ada komisi)</option>
+              <option value="Perpanjangan">🔄 Perpanjangan — customer lama perpanjang masa aktif (ada komisi)</option>
+              <option value="Re-aktivasi">♻️ Re-aktivasi — aktif kembali setelah expired (tanpa komisi)</option>
+              <option value="Perbaikan">🔧 Perbaikan — ganti ID komputer / serial (tanpa komisi)</option>
+            </select>
+          </div>
+          <div class="form-group">
             <label class="form-label">🔑 Informasi Registrasi</label>
             <textarea id="f-reginfo" placeholder="ID Komputer, No. Serial, Kode Registrasi, atau info lainnya..." style="min-height:80px"></textarea>
           </div>
@@ -500,6 +519,13 @@ mark.sh{background:#fef08a;color:#713f12;border-radius:2px;padding:0 1px}
             <select id="filter-paket" onchange="filterList()" style="min-width:150px">
               <option value="">Semua Paket</option>
             </select>
+            <select id="filter-tipe" onchange="filterList()" style="min-width:140px">
+              <option value="">Semua Tipe</option>
+              <option value="Baru">🆕 Baru</option>
+              <option value="Perpanjangan">🔄 Perpanjangan</option>
+              <option value="Re-aktivasi">♻️ Re-aktivasi</option>
+              <option value="Perbaikan">🔧 Perbaikan</option>
+            </select>
             <select id="filter-status" onchange="filterList()" style="min-width:120px">
               <option value="">Semua Status</option>
               <option value="active">Aktif</option>
@@ -515,7 +541,7 @@ mark.sh{background:#fef08a;color:#713f12;border-radius:2px;padding:0 1px}
               <thead>
                 <tr>
                   <th>No</th><th>Nama Perusahaan</th><th>Invoice</th><th>Paket Plugin</th>
-                  <th>Tgl Reg</th><th>Aktif Hingga</th><th>Status</th><th>User Input</th>
+                  <th>Tipe</th><th>Tgl Reg</th><th>Aktif Hingga</th><th>Status</th><th>User Input</th>
                   <th>Informasi Registrasi</th><th>Catatan</th><th>Aksi</th>
                 </tr>
               </thead>
@@ -574,7 +600,50 @@ mark.sh{background:#fef08a;color:#713f12;border-radius:2px;padding:0 1px}
 
 
 
-    <!-- PANDUAN PENGGUNAAN -->
+    <!-- REKAP KOMISI -->
+    <div id="page-komisi" class="page">
+      <div class="grid-4" style="margin-bottom:20px" id="komisi-stat-grid"></div>
+      <div class="card">
+        <div class="card-header">
+          <h2>💰 Rekap Komisi Registrasi</h2>
+          <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+            <select id="komisi-filter-bulan" onchange="renderKomisi()" style="font-size:12px;padding:5px 10px;background:var(--surface);color:var(--text);border:1px solid var(--border2);border-radius:6px">
+              <option value="">Semua Bulan</option>
+              <option value="01">Januari</option><option value="02">Februari</option><option value="03">Maret</option>
+              <option value="04">April</option><option value="05">Mei</option><option value="06">Juni</option>
+              <option value="07">Juli</option><option value="08">Agustus</option><option value="09">September</option>
+              <option value="10">Oktober</option><option value="11">November</option><option value="12">Desember</option>
+            </select>
+            <select id="komisi-filter-tahun" onchange="renderKomisi()" style="font-size:12px;padding:5px 10px;background:var(--surface);color:var(--text);border:1px solid var(--border2);border-radius:6px">
+              <option value="">Semua Tahun</option>
+            </select>
+            <select id="komisi-filter-tipe" onchange="renderKomisi()" style="font-size:12px;padding:5px 10px;background:var(--surface);color:var(--text);border:1px solid var(--border2);border-radius:6px">
+              <option value="">Baru + Perpanjangan</option>
+              <option value="Baru">Baru saja</option>
+              <option value="Perpanjangan">Perpanjangan saja</option>
+            </select>
+            <button class="btn btn-success btn-sm" onclick="exportKomisiCSV()">⬇ Export CSV</button>
+            <button class="btn btn-secondary btn-sm" onclick="printKomisi()">🖨 Cetak</button>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="tbl-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>No</th><th>Tgl Registrasi</th><th>Nama Perusahaan</th><th>Invoice</th>
+                  <th>Paket Plugin</th><th>Tipe</th><th>Aktif Hingga</th><th>Status</th><th>User Input</th>
+                </tr>
+              </thead>
+              <tbody id="komisi-body"></tbody>
+            </table>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-top:10px;flex-wrap:wrap;gap:8px">
+            <div class="page-info" id="komisi-info"></div>
+          </div>
+        </div>
+      </div>
+    </div>
     <div id="page-panduan" class="page">
 
       <!-- Panduan styles -->
@@ -1327,6 +1396,16 @@ mark.sh{background:#fef08a;color:#713f12;border-radius:2px;padding:0 1px}
         <div class="form-group"><label class="form-label">Aktif Hingga</label><input type="date" id="m-tgl-aktif"></div>
       </div>
       <div class="form-group">
+        <label class="form-label">Tipe Registrasi <span class="req">*</span></label>
+        <select id="m-tipe">
+          <option value="">-- Pilih Tipe --</option>
+          <option value="Baru">🆕 Baru (ada komisi)</option>
+          <option value="Perpanjangan">🔄 Perpanjangan (ada komisi)</option>
+          <option value="Re-aktivasi">♻️ Re-aktivasi (tanpa komisi)</option>
+          <option value="Perbaikan">🔧 Perbaikan (tanpa komisi)</option>
+        </select>
+      </div>
+      <div class="form-group">
         <label class="form-label">🔑 Informasi Registrasi</label>
         <textarea id="m-reginfo" placeholder="ID Komputer, No. Serial, Kode Registrasi, atau info lainnya..." style="min-height:80px"></textarea>
       </div>
@@ -1615,7 +1694,7 @@ function renderCurrentPage(){
   else if(id==='list') renderList();
   else if(id==='laporan') renderLaporan();
   else if(id==='expiring') renderExpiringPage();
-  else if(id==='history') renderHistoryPage();
+  else if(id==='komisi') renderKomisi();
 }
 
 // ========== NAVIGATION ==========
@@ -1625,7 +1704,7 @@ const pageMeta = {
   list:['Daftar Registrasi','Semua data registrasi plugin customer'],
   laporan:['Laporan & Analitik','Statistik dan analisis data registrasi'],
   expiring:['Segera Habis','Plugin yang mendekati tanggal berakhir'],
-  history:['Riwayat Customer','Riwayat perubahan kode registrasi per customer per serial'],
+  komisi:['Rekap Komisi','Rekapitulasi komisi registrasi baru dan perpanjangan'],
   panduan:['Panduan Penggunaan','Dokumentasi dan cara penggunaan aplikasi'],
   settings:['Pengaturan','Konfigurasi sistem dan manajemen user']
 };
@@ -1642,7 +1721,7 @@ function gotoPage(name, el){
   if(name==='list'){ currentPage=1; renderList(); }
   if(name==='laporan') renderLaporan();
   if(name==='expiring') renderExpiringPage();
-  if(name==='history') renderHistoryPage();
+  if(name==='komisi') renderKomisi();
   if(name==='form'){ editId=null; resetForm(); document.getElementById('form-title').textContent='📝 Form Registrasi Baru'; }
   if(name==='settings'){ loadWhitelist(); updateSysInfo(); }
 }
@@ -1717,6 +1796,7 @@ function resetForm(){
   });
   document.getElementById('f-tgl-reg').value=new Date().toISOString().split('T')[0];
   document.getElementById('f-tgl-aktif').value='';
+  document.getElementById('f-tipe').value='';
   selectedPaketsForm.length=0;
   renderMsTags('');
   if(currentUser) document.getElementById('f-user-input').value=currentUser.displayName||currentUser.email;
@@ -1728,14 +1808,18 @@ async function saveRecord(){
   const paket=document.getElementById('f-paket').value;
   const tglReg=document.getElementById('f-tgl-reg').value;
   const tglAktif=document.getElementById('f-tgl-aktif').value;
+  const tipe=document.getElementById('f-tipe').value;
   if(!nama) return showToast('Nama Perusahaan wajib diisi!','danger');
   if(!selectedPaketsForm.length) return showToast('Pilih minimal satu Paket Plugin!','danger');
   if(!tglReg) return showToast('Tanggal Registrasi wajib diisi!','danger');
   if(!tglAktif) return showToast('Tanggal Aktif Hingga wajib diisi!','danger');
+  if(!tipe) return showToast('Tipe Registrasi wajib dipilih!','danger');
   const rec = {
     nama, invoice: document.getElementById('f-invoice').value.trim(),
     paket: selectedPaketsForm.join(', '),
     tglReg, tglAktif,
+    tipe,
+    adaKomisi: (tipe==='Baru'||tipe==='Perpanjangan'),
     idKomp: '',
     serial: '',
     code: document.getElementById('f-reginfo').value.trim(),
@@ -1772,12 +1856,13 @@ function getFilteredData(){
       const haystack=[
         r.nama,r.invoice,r.paket,r.tglReg,r.tglAktif,
         r.idKomp,r.serial,r.code,r.catatan,
-        r.userInput,r.userEmail
+        r.userInput,r.userEmail,r.tipe
       ].map(v=>(v||'').toLowerCase()).join(' ');
       if(!haystack.includes(q)) return false;
     }
     if(pkt && !r.paket?.toLowerCase().includes(pkt)) return false;
     if(sts && getStatus(r.tglAktif)!==sts) return false;
+    if((document.getElementById('filter-tipe')||{value:''}).value && r.tipe!==(document.getElementById('filter-tipe')||{value:''}).value) return false;
     if(dari && r.tglReg && r.tglReg<dari) return false;
     if(sampai && r.tglReg && r.tglReg>sampai) return false;
     return true;
@@ -1791,13 +1876,24 @@ function highlightText(text, q){
 }
 function filterList(){ currentPage=1; renderList(); }
 function clearFilters(){
-  ['search-input','filter-paket','filter-status','filter-dari','filter-sampai'].forEach(id=>{
+  ['search-input','filter-paket','filter-status','filter-tipe','filter-dari','filter-sampai'].forEach(id=>{
     const el=document.getElementById(id); if(el) el.value='';
   });
   filterList();
 }
 window.filterList=filterList;
 window.clearFilters=clearFilters;
+
+function tipeBadge(tipe){
+  if(!tipe) return '<span class="badge badge-gray">–</span>';
+  const map={
+    'Baru':'<span class="badge badge-tipe-baru">🆕 Baru</span>',
+    'Perpanjangan':'<span class="badge badge-tipe-perpanjangan">🔄 Perpanjangan</span>',
+    'Re-aktivasi':'<span class="badge badge-tipe-reaktivasi">♻️ Re-aktivasi</span>',
+    'Perbaikan':'<span class="badge badge-tipe-perbaikan">🔧 Perbaikan</span>'
+  };
+  return map[tipe]||`<span class="badge badge-gray">${tipe}</span>`;
+}
 
 function renderList(){
   filteredData=getFilteredData();
@@ -1818,10 +1914,9 @@ function renderList(){
 
   const tbody=document.getElementById('tbl-body');
   if(!slice.length){
-    tbody.innerHTML='<tr><td colspan="11" style="text-align:center;padding:32px;color:var(--text3)">Tidak ada data</td></tr>';
+    tbody.innerHTML='<tr><td colspan="12" style="text-align:center;padding:32px;color:var(--text3)">Tidak ada data</td></tr>';
   } else {
     tbody.innerHTML=slice.map((r,i)=>{
-      // Hitung jumlah riwayat untuk serial ini (sama nama & serial)
       const histCount = r.serial ? DB.filter(x=>
         x.nama?.toLowerCase()===r.nama?.toLowerCase() &&
         x.serial===r.serial
@@ -1832,6 +1927,7 @@ function renderList(){
       <td class="td-name">${hl(r.nama)}</td>
       <td>${hl(r.invoice||'–')}</td>
       <td>${(r.paket||'–').split(',').map(p=>`<span class="badge badge-blue" style="margin:1px">${q?highlightText(p.trim(),q):p.trim()}</span>`).join(' ')}</td>
+      <td>${tipeBadge(r.tipe)}</td>
       <td>${fmtDate(r.tglReg)}</td>
       <td>${fmtDate(r.tglAktif)}</td>
       <td>${statusBadge(getStatus(r.tglAktif))}</td>
@@ -2115,6 +2211,7 @@ function openEdit(fid){
   document.getElementById('m-invoice').value=r.invoice||'';
   document.getElementById('m-tgl-reg').value=r.tglReg||'';
   document.getElementById('m-tgl-aktif').value=r.tglAktif||'';
+  document.getElementById('m-tipe').value=r.tipe||'';
   // Gabungkan idKomp, serial, code ke satu field (seperti semula)
   const parts=[];
   if(r.idKomp) parts.push(r.idKomp);
@@ -2154,6 +2251,7 @@ async function updateRecord(){
   const newTglAktif=document.getElementById('m-tgl-aktif').value;
   const newReginfo= document.getElementById('m-reginfo').value.trim();
   const newCatatan= document.getElementById('m-catatan').value.trim();
+  const newTipe   = document.getElementById('m-tipe').value;
 
   if(!newNama) return showToast('Nama Perusahaan wajib diisi!','danger');
 
@@ -2167,6 +2265,7 @@ async function updateRecord(){
   if(old.tglAktif!==newTglAktif)  changes.push({field:'Aktif Hingga', dari:old.tglAktif||'–', ke:newTglAktif});
   if(oldReginfo!==newReginfo)     changes.push({field:'Informasi Registrasi', dari:oldReginfo||'–', ke:newReginfo});
   if(old.catatan!==newCatatan)    changes.push({field:'Catatan', dari:old.catatan||'–', ke:newCatatan});
+  if((old.tipe||'')!==newTipe)    changes.push({field:'Tipe Registrasi', dari:old.tipe||'–', ke:newTipe});
 
   if(!changes.length) { showToast('Tidak ada perubahan data.','info'); return; }
 
@@ -2198,6 +2297,8 @@ async function updateRecord(){
       serial: '',
       code: newReginfo,
       catatan: newCatatan,
+      tipe: newTipe,
+      adaKomisi: (newTipe==='Baru'||newTipe==='Perpanjangan'),
       updatedAt: serverTimestamp(),
       updatedBy: currentUser?.displayName||currentUser?.email||'–'
     });
@@ -2619,6 +2720,112 @@ async function importExcelToFirestore(){
   }
 }
 window.importExcelToFirestore=importExcelToFirestore;
+
+// ========== REKAP KOMISI ==========
+function getKomisiData(){
+  const bulan = document.getElementById('komisi-filter-bulan')?.value||'';
+  const tahun = document.getElementById('komisi-filter-tahun')?.value||'';
+  const tipe  = document.getElementById('komisi-filter-tipe')?.value||'';
+  return DB.filter(r=>{
+    const boleh = r.adaKomisi===true || r.tipe==='Baru' || r.tipe==='Perpanjangan';
+    if(!boleh) return false;
+    if(tipe && r.tipe!==tipe) return false;
+    if(bulan && r.tglReg && r.tglReg.substring(5,7)!==bulan) return false;
+    if(tahun && r.tglReg && r.tglReg.substring(0,4)!==tahun) return false;
+    return true;
+  }).sort((a,b)=>(a.tglReg||'').localeCompare(b.tglReg||''));
+}
+function renderKomisi(){
+  const tahunSel=document.getElementById('komisi-filter-tahun');
+  if(tahunSel){
+    const cur=tahunSel.value;
+    const tahuns=[...new Set(DB.map(r=>r.tglReg?.substring(0,4)).filter(Boolean))].sort().reverse();
+    tahunSel.innerHTML='<option value="">Semua Tahun</option>'+tahuns.map(t=>`<option value="${t}" ${cur===t?'selected':''}>${t}</option>`).join('');
+    if(cur) tahunSel.value=cur;
+  }
+  const data=getKomisiData();
+  const totalBaru=data.filter(r=>r.tipe==='Baru').length;
+  const totalPerp=data.filter(r=>r.tipe==='Perpanjangan').length;
+  const grid=document.getElementById('komisi-stat-grid');
+  if(grid) grid.innerHTML=`
+    <div class="stat-card"><div class="stat-label">Total Ada Komisi</div><div class="stat-value" style="color:var(--primary)">${data.length}</div><div class="stat-sub">record dalam filter ini</div></div>
+    <div class="stat-card"><div class="stat-label">🆕 Baru</div><div class="stat-value" style="color:#1e40af">${totalBaru}</div><div class="stat-sub">registrasi customer baru</div></div>
+    <div class="stat-card"><div class="stat-label">🔄 Perpanjangan</div><div class="stat-value" style="color:#065f46">${totalPerp}</div><div class="stat-sub">perpanjang masa aktif</div></div>
+    <div class="stat-card"><div class="stat-label">Tanpa Komisi</div><div class="stat-value" style="color:var(--text3)">${DB.filter(r=>r.tipe==='Re-aktivasi'||r.tipe==='Perbaikan').length}</div><div class="stat-sub">Re-aktivasi & Perbaikan</div></div>`;
+  const tbody=document.getElementById('komisi-body');
+  if(!data.length){
+    tbody.innerHTML='<tr><td colspan="9" style="text-align:center;padding:32px;color:var(--text3)">Tidak ada data komisi untuk filter ini</td></tr>';
+    document.getElementById('komisi-info').textContent='';
+    return;
+  }
+  tbody.innerHTML=data.map((r,i)=>`<tr>
+    <td style="color:var(--text3)">${i+1}</td>
+    <td>${fmtDate(r.tglReg)}</td>
+    <td class="td-name">${r.nama||'–'}</td>
+    <td>${r.invoice||'–'}</td>
+    <td>${(r.paket||'–').split(',').map(p=>`<span class="badge badge-blue" style="margin:1px">${p.trim()}</span>`).join(' ')}</td>
+    <td>${tipeBadge(r.tipe)}</td>
+    <td>${fmtDate(r.tglAktif)}</td>
+    <td>${statusBadge(getStatus(r.tglAktif))}</td>
+    <td style="font-size:11px;color:var(--text2)">${r.userInput||'–'}</td>
+  </tr>`).join('');
+  document.getElementById('komisi-info').textContent=`${data.length} data · ${totalBaru} Baru · ${totalPerp} Perpanjangan`;
+}
+window.renderKomisi=renderKomisi;
+
+function exportKomisiCSV(){
+  const data=getKomisiData();
+  const bulan=document.getElementById('komisi-filter-bulan')?.value||'';
+  const tahun=document.getElementById('komisi-filter-tahun')?.value||'';
+  const headers=['No','Tgl Registrasi','Nama Perusahaan','Invoice','Paket Plugin','Tipe','Aktif Hingga','Status','User Input'];
+  const rows=data.map((r,i)=>[i+1,r.tglReg,`"${r.nama}"`,r.invoice,`"${r.paket}"`,r.tipe,r.tglAktif,getStatus(r.tglAktif),`"${r.userInput||''}"`]);
+  const csv=[headers,...rows].map(r=>r.join(',')).join('\n');
+  const suffix=(tahun||'semua')+(bulan?'-'+bulan:'');
+  const a=document.createElement('a');
+  a.href='data:text/csv;charset=utf-8,\uFEFF'+encodeURIComponent(csv);
+  a.download=`rekap_komisi_${suffix}.csv`;
+  a.click();
+  showToast('Export CSV komisi berhasil!','success');
+}
+window.exportKomisiCSV=exportKomisiCSV;
+
+function printKomisi(){
+  const data=getKomisiData();
+  const bulanEl=document.getElementById('komisi-filter-bulan');
+  const bulanTxt=bulanEl?.options[bulanEl.selectedIndex]?.text||'Semua Bulan';
+  const tahun=document.getElementById('komisi-filter-tahun')?.value||'Semua Tahun';
+  const totalBaru=data.filter(r=>r.tipe==='Baru').length;
+  const totalPerp=data.filter(r=>r.tipe==='Perpanjangan').length;
+  const w=window.open('','_blank','width=900,height=700');
+  w.document.write(`<!DOCTYPE html><html lang="id"><head><meta charset="UTF-8"><title>Rekap Komisi</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:'Plus Jakarta Sans',sans-serif;padding:24px;font-size:13px;color:#0f172a}
+  h1{font-size:18px;font-weight:700;margin-bottom:4px}.sub{font-size:12px;color:#64748b;margin-bottom:20px}
+  .stats{display:flex;gap:16px;margin-bottom:20px}.stat{background:#f0f4fa;border-radius:8px;padding:10px 16px;min-width:120px}
+  .stat .v{font-size:22px;font-weight:700;color:#1e40af}.stat .l{font-size:10px;color:#64748b;text-transform:uppercase;letter-spacing:.04em;margin-top:2px}
+  table{width:100%;border-collapse:collapse;font-size:12px}
+  th{background:#f0f4fa;padding:8px 10px;text-align:left;font-size:10px;font-weight:700;color:#475569;border-bottom:2px solid #e2e8f0;text-transform:uppercase;letter-spacing:.04em}
+  td{padding:8px 10px;border-bottom:1px solid #e2e8f0;vertical-align:top}
+  .badge{display:inline-flex;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:700}
+  .baru{background:#dbeafe;color:#1e40af}.perp{background:#d1fae5;color:#065f46}
+  @media print{body{padding:0}}</style></head><body>
+  <h1>💰 Rekap Komisi Registrasi</h1>
+  <div class="sub">Periode: ${bulanTxt} ${tahun} · Dicetak: ${new Date().toLocaleDateString('id-ID',{day:'2-digit',month:'long',year:'numeric'})}</div>
+  <div class="stats">
+    <div class="stat"><div class="v">${data.length}</div><div class="l">Total</div></div>
+    <div class="stat"><div class="v" style="color:#1e40af">${totalBaru}</div><div class="l">🆕 Baru</div></div>
+    <div class="stat"><div class="v" style="color:#065f46">${totalPerp}</div><div class="l">🔄 Perpanjangan</div></div>
+  </div>
+  <table><thead><tr><th>No</th><th>Tgl Reg</th><th>Nama Perusahaan</th><th>Invoice</th><th>Paket</th><th>Tipe</th><th>Aktif Hingga</th><th>User Input</th></tr></thead>
+  <tbody>${data.map((r,i)=>`<tr><td>${i+1}</td><td>${r.tglReg||'–'}</td><td><strong>${r.nama||'–'}</strong></td>
+    <td>${r.invoice||'–'}</td><td>${r.paket||'–'}</td>
+    <td><span class="badge ${r.tipe==='Baru'?'baru':'perp'}">${r.tipe}</span></td>
+    <td>${r.tglAktif||'–'}</td><td>${r.userInput||'–'}</td></tr>`).join('')}
+  </tbody></table>
+  <script>window.onload=()=>window.print()<\/script></body></html>`);
+  w.document.close();
+}
+window.printKomisi=printKomisi;
 
 // ========== COPY INFORMASI REGISTRASI ==========
 function copyRegField(el, text){
