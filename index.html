@@ -1317,7 +1317,10 @@ mark.sh{background:#fef08a;color:#713f12;border-radius:2px;padding:0 1px}
 <div class="modal-overlay" id="modal">
   <div class="modal">
     <div class="modal-header">
-      <h2 id="modal-title">Edit Registrasi</h2>
+      <div>
+        <h2 id="modal-title">Edit Registrasi</h2>
+        <div style="font-size:11px;color:var(--text3);margin-top:2px" id="modal-last-edit">–</div>
+      </div>
       <button class="btn btn-secondary btn-icon" onclick="closeModal()">✕</button>
     </div>
     <div class="modal-body">
@@ -1351,7 +1354,26 @@ mark.sh{background:#fef08a;color:#713f12;border-radius:2px;padding:0 1px}
     </div>
     <div class="modal-footer">
       <button class="btn btn-secondary" onclick="closeModal()">Batal</button>
-      <button class="btn btn-primary" onclick="updateRecord()">💾 Simpan</button>
+      <button class="btn btn-primary" onclick="updateRecord()">💾 Simpan &amp; Catat History</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL UPDATE HISTORY -->
+<div class="modal-overlay" id="modal-update-history">
+  <div class="modal" style="max-width:720px">
+    <div class="modal-header">
+      <div>
+        <h2 id="upd-hist-title">🕐 Riwayat Perubahan</h2>
+        <div style="font-size:11px;color:var(--text3);margin-top:2px" id="upd-hist-subtitle">–</div>
+      </div>
+      <button class="btn btn-secondary btn-icon" onclick="closeUpdateHistory()">✕</button>
+    </div>
+    <div class="modal-body" id="upd-hist-body" style="min-height:120px">
+      <p style="color:var(--text3);text-align:center;padding:30px">Memuat riwayat...</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeUpdateHistory()">Tutup</button>
     </div>
   </div>
 </div>
@@ -1840,6 +1862,7 @@ function renderList(){
       <td style="font-size:11px;color:var(--text2);max-width:100px">${hl(r.catatan||'')}</td>
       <td><div style="display:flex;gap:3px;flex-wrap:wrap">
         <button class="btn btn-secondary btn-sm btn-icon" title="Edit" onclick="openEdit('${r.firestoreId}')">✏</button>
+        <button class="btn btn-history btn-sm btn-icon" title="Riwayat Perubahan" onclick="openUpdateHistory('${r.firestoreId}','${(r.nama||'').replace(/'/g,"\\'")}')">🕐</button>
         ${hasHistory?`<button class="btn btn-history btn-sm btn-icon" title="Lihat Riwayat (${histCount} record)" onclick="openHistory('${encodeURIComponent(r.nama||'')}','${r.serial||''}')">📜</button>`:''}
         <button class="btn btn-secondary btn-sm btn-icon" title="Cetak" onclick="printItem('${r.firestoreId}')">🖨</button>
         <button class="btn btn-danger btn-sm btn-icon" title="Hapus" onclick="openDel('${r.firestoreId}')">🗑</button>
@@ -2004,15 +2027,110 @@ window.openHistory=openHistory;
 window.closeHistory=closeHistory;
 window.toggleSerialGroup=toggleSerialGroup;
 
+// ========== HELPER DATETIME ==========
+function fmtDatetime(d){
+  if(!d) return '–';
+  const dt = d instanceof Date ? d : new Date(d);
+  return dt.toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'})+
+    ' '+dt.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
+}
+
+// ========== RIWAYAT PERUBAHAN (UPDATE HISTORY) ==========
+async function openUpdateHistory(fid, nama){
+  document.getElementById('upd-hist-title').textContent = '🕐 Riwayat Perubahan: '+nama;
+  document.getElementById('upd-hist-subtitle').textContent = 'Memuat data...';
+  document.getElementById('upd-hist-body').innerHTML =
+    '<p style="color:var(--text3);text-align:center;padding:30px">⏳ Memuat riwayat...</p>';
+  document.getElementById('modal-update-history').classList.add('open');
+
+  try {
+    const histRef = collection(db,'registrasi',fid,'updateHistory');
+    const snap = await getDocs(query(histRef, orderBy('changedAt','desc')));
+
+    if(snap.empty){
+      document.getElementById('upd-hist-subtitle').textContent = 'Belum ada perubahan tercatat';
+      document.getElementById('upd-hist-body').innerHTML =
+        `<div style="text-align:center;padding:40px 20px;color:var(--text3)">
+          <div style="font-size:32px;margin-bottom:10px">📋</div>
+          <div style="font-size:14px;font-weight:600;margin-bottom:6px">Belum ada riwayat perubahan</div>
+          <div style="font-size:12px">Setiap kali data diedit, perubahan akan tercatat di sini.</div>
+        </div>`;
+      return;
+    }
+
+    const items = snap.docs.map(d=>({...d.data(), id:d.id}));
+    document.getElementById('upd-hist-subtitle').textContent =
+      `${items.length} kali perubahan tercatat`;
+
+    const FIELD_LABELS = {
+      'Nama Perusahaan':'🏢',
+      'No. Invoice':'🧾',
+      'Paket Plugin':'📦',
+      'Tgl. Registrasi':'📅',
+      'Aktif Hingga':'⏳',
+      'Informasi Registrasi':'🔑',
+      'Catatan':'📝'
+    };
+
+    let html = '<div class="history-timeline">';
+    items.forEach((item, idx)=>{
+      const tgl = item.changedAt?.toDate ? fmtDatetime(item.changedAt.toDate()) : '–';
+      const isFirst = idx===0;
+      const changes = item.changes||[];
+      html += `
+        <div class="history-item ${isFirst?'current':''}">
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:8px">
+            <div>
+              <div class="h-date">${tgl} ${isFirst?'<span style="background:var(--primary-light);color:var(--primary);padding:1px 6px;border-radius:10px;font-size:9px;font-weight:700">● TERBARU</span>':''}</div>
+              <div style="font-size:11px;color:var(--text2);margin-top:2px">👤 ${item.changedBy||'–'} &lt;${item.changedByEmail||'–'}&gt;</div>
+            </div>
+            <span style="background:var(--warn-bg);color:var(--warn);padding:2px 10px;border-radius:20px;font-size:10px;font-weight:700">${changes.length} field berubah</span>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:6px">
+            ${changes.map(c=>`
+              <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:8px 12px;font-size:12px">
+                <div style="font-weight:700;color:var(--text2);margin-bottom:5px">${FIELD_LABELS[c.field]||'•'} ${c.field}</div>
+                <div style="display:flex;align-items:flex-start;gap:8px;flex-wrap:wrap">
+                  <div style="flex:1;min-width:120px">
+                    <div style="font-size:10px;color:var(--text3);margin-bottom:2px;text-transform:uppercase;letter-spacing:.04em">Sebelum</div>
+                    <div style="font-family:monospace;font-size:11px;background:var(--danger-bg);color:var(--danger);padding:4px 8px;border-radius:5px;word-break:break-all;line-height:1.5">${c.dari||'(kosong)'}</div>
+                  </div>
+                  <div style="color:var(--text3);font-size:14px;padding-top:20px">→</div>
+                  <div style="flex:1;min-width:120px">
+                    <div style="font-size:10px;color:var(--text3);margin-bottom:2px;text-transform:uppercase;letter-spacing:.04em">Sesudah</div>
+                    <div style="font-family:monospace;font-size:11px;background:var(--success-bg);color:var(--success);padding:4px 8px;border-radius:5px;word-break:break-all;line-height:1.5">${c.ke||'(kosong)'}</div>
+                  </div>
+                </div>
+              </div>`).join('')}
+          </div>
+          <div style="margin-top:8px">
+            <button class="btn btn-secondary btn-sm" onclick="closeUpdateHistory();openEdit('${fid}')">✏ Edit Sekarang</button>
+          </div>
+        </div>`;
+    });
+    html += '</div>';
+    document.getElementById('upd-hist-body').innerHTML = html;
+  } catch(e){
+    document.getElementById('upd-hist-body').innerHTML =
+      `<p style="color:var(--danger);text-align:center;padding:20px">Gagal memuat riwayat: ${e.message}</p>`;
+  }
+}
+
+function closeUpdateHistory(){
+  document.getElementById('modal-update-history').classList.remove('open');
+}
+window.openUpdateHistory=openUpdateHistory;
+window.closeUpdateHistory=closeUpdateHistory;
+
 // ========== CRUD ==========
 function openEdit(fid){
   const r=DB.find(x=>x.firestoreId===fid); if(!r) return;
   editId=fid;
-  document.getElementById('m-nama').value=r.nama||'';;
+  document.getElementById('m-nama').value=r.nama||'';
   document.getElementById('m-invoice').value=r.invoice||'';
   document.getElementById('m-tgl-reg').value=r.tglReg||'';
   document.getElementById('m-tgl-aktif').value=r.tglAktif||'';
-  // Gabungkan idKomp, serial, code ke satu field
+  // Gabungkan idKomp, serial, code ke satu field (seperti semula)
   const parts=[];
   if(r.idKomp) parts.push(r.idKomp);
   if(r.serial) parts.push(r.serial);
@@ -2020,6 +2138,14 @@ function openEdit(fid){
   document.getElementById('m-reginfo').value=parts.join('\n');
   document.getElementById('m-catatan').value=r.catatan||'';
   document.getElementById('m-user-input').value=r.userInput||'–';
+  // Info perubahan terakhir
+  const lastEditEl=document.getElementById('modal-last-edit');
+  if(r.updatedBy){
+    const tgl=r.updatedAt?.toDate?fmtDatetime(r.updatedAt.toDate()):'–';
+    lastEditEl.textContent=`Terakhir diubah oleh ${r.updatedBy} · ${tgl}`;
+  } else {
+    lastEditEl.textContent='Belum pernah diubah';
+  }
   // set multiselect
   selectedPaketsModal.length=0;
   if(r.paket) r.paket.split(',').forEach(p=>{ const t=p.trim(); if(t) selectedPaketsModal.push(t); });
@@ -2033,23 +2159,66 @@ window.closeModal=closeModal;
 
 async function updateRecord(){
   if(!editId) return;
+  const old=DB.find(x=>x.firestoreId===editId);
+  if(!old) return;
+
+  const newNama   = document.getElementById('m-nama').value.trim();
+  const newInvoice= document.getElementById('m-invoice').value.trim();
+  const newPaket  = selectedPaketsModal.join(', ')||document.getElementById('m-paket').value;
+  const newTglReg = document.getElementById('m-tgl-reg').value;
+  const newTglAktif=document.getElementById('m-tgl-aktif').value;
+  const newReginfo= document.getElementById('m-reginfo').value.trim();
+  const newCatatan= document.getElementById('m-catatan').value.trim();
+
+  if(!newNama) return showToast('Nama Perusahaan wajib diisi!','danger');
+
+  // Deteksi field mana yang berubah
+  const oldReginfo=[old.idKomp,old.serial,old.code].filter(Boolean).join('\n');
+  const changes=[];
+  if(old.nama!==newNama)          changes.push({field:'Nama Perusahaan', dari:old.nama||'–', ke:newNama});
+  if(old.invoice!==newInvoice)    changes.push({field:'No. Invoice', dari:old.invoice||'–', ke:newInvoice});
+  if(old.paket!==newPaket)        changes.push({field:'Paket Plugin', dari:old.paket||'–', ke:newPaket});
+  if(old.tglReg!==newTglReg)      changes.push({field:'Tgl. Registrasi', dari:old.tglReg||'–', ke:newTglReg});
+  if(old.tglAktif!==newTglAktif)  changes.push({field:'Aktif Hingga', dari:old.tglAktif||'–', ke:newTglAktif});
+  if(oldReginfo!==newReginfo)     changes.push({field:'Informasi Registrasi', dari:oldReginfo||'–', ke:newReginfo});
+  if(old.catatan!==newCatatan)    changes.push({field:'Catatan', dari:old.catatan||'–', ke:newCatatan});
+
+  if(!changes.length) { showToast('Tidak ada perubahan data.','info'); return; }
+
   showLoading('Menyimpan perubahan...');
   try {
+    // 1. Simpan snapshot data LAMA ke sub-koleksi updateHistory
+    const histRef = collection(db,'registrasi',editId,'updateHistory');
+    await addDoc(histRef, {
+      snapshot: {
+        nama:old.nama||'', invoice:old.invoice||'', paket:old.paket||'',
+        tglReg:old.tglReg||'', tglAktif:old.tglAktif||'',
+        idKomp:old.idKomp||'', serial:old.serial||'', code:old.code||'',
+        catatan:old.catatan||''
+      },
+      changes: changes,
+      changedBy: currentUser?.displayName||currentUser?.email||'–',
+      changedByEmail: currentUser?.email||'–',
+      changedAt: serverTimestamp()
+    });
+
+    // 2. Update dokumen utama dengan data BARU
     await updateDoc(doc(db,'registrasi',editId),{
-      nama: document.getElementById('m-nama').value.trim(),
-      invoice: document.getElementById('m-invoice').value.trim(),
-      paket: selectedPaketsModal.join(', ')||document.getElementById('m-paket').value,
-      tglReg: document.getElementById('m-tgl-reg').value,
-      tglAktif: document.getElementById('m-tgl-aktif').value,
+      nama: newNama,
+      invoice: newInvoice,
+      paket: newPaket,
+      tglReg: newTglReg,
+      tglAktif: newTglAktif,
       idKomp: '',
       serial: '',
-      code: document.getElementById('m-reginfo').value.trim(),
-      catatan: document.getElementById('m-catatan').value.trim(),
+      code: newReginfo,
+      catatan: newCatatan,
       updatedAt: serverTimestamp(),
-      updatedBy: currentUser?.email||'–'
+      updatedBy: currentUser?.displayName||currentUser?.email||'–'
     });
+
     hideLoading(); closeModal();
-    showToast('Data berhasil diperbarui!','success');
+    showToast(`Data diperbarui! ${changes.length} field berubah — history tersimpan.`,'success');
   } catch(e){
     hideLoading(); showToast('Gagal update: '+e.message,'danger');
   }
@@ -2520,6 +2689,7 @@ document.addEventListener('keydown',e=>{
   if(e.key==='Escape'){
     closeModal();
     closeHistory();
+    closeUpdateHistory();
     document.getElementById('modal-del').classList.remove('open');
     document.getElementById('modal-add-user').classList.remove('open');
   }
