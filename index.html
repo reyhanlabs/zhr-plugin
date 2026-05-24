@@ -142,7 +142,7 @@ textarea{resize:vertical;min-height:80px}
 
 /* TABLE */
 .tbl-wrap{overflow-x:auto}
-table{width:100%;border-collapse:collapse;min-width:1100px}
+table{width:100%;border-collapse:collapse;min-width:1300px}
 thead th{background:var(--surface2);padding:9px 11px;text-align:left;font-size:11px;font-weight:700;color:var(--text2);border-bottom:2px solid var(--border);white-space:nowrap;text-transform:uppercase;letter-spacing:.05em}
 tbody tr{border-bottom:1px solid var(--border)}
 tbody tr:hover{background:var(--surface2)}
@@ -151,15 +151,15 @@ tbody td{padding:9px 11px;font-size:12px;vertical-align:middle}
 
 /* TABLE COLUMN WIDTHS — Daftar Registrasi */
 .col-no{width:40px;text-align:center;color:var(--text3)}
-.col-nama{min-width:160px;max-width:200px}
-.col-invoice{min-width:100px;max-width:130px}
-.col-paket{min-width:140px;max-width:200px}
+.col-nama{min-width:160px}
+.col-invoice{min-width:110px}
+.col-paket{min-width:150px}
 .col-tipe{min-width:120px;white-space:nowrap}
 .col-tgl{min-width:100px;white-space:nowrap;font-size:12px}
 .col-status{min-width:110px;white-space:nowrap}
-.col-user{min-width:100px;max-width:130px}
-.col-reginfo{min-width:200px;max-width:260px}
-.col-catatan{min-width:140px;max-width:200px}
+.col-user{min-width:110px}
+.col-reginfo{min-width:240px}
+.col-catatan{min-width:180px}
 .col-aksi{min-width:120px;white-space:nowrap}
 
 /* ── COPY CELL (Informasi Registrasi & Catatan) ───── */
@@ -178,13 +178,13 @@ tbody td{padding:9px 11px;font-size:12px;vertical-align:middle}
 .copy-cell-btn.copied{background:var(--success-bg);color:var(--success);border-color:var(--success);opacity:1}
 
 /* Informasi Registrasi — tampil apa adanya */
-.reginfo-cell{font-size:12px;color:var(--text2);line-height:1.6;white-space:pre-wrap;word-break:break-word;padding-right:52px}
-.reginfo-row{display:flex;align-items:baseline;gap:6px;margin-bottom:1px}
-.reginfo-key{font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.04em;white-space:nowrap;flex-shrink:0;width:62px}
-.reginfo-val{font-family:monospace;font-size:12px;color:var(--text);word-break:break-all;line-height:1.5}
+.reginfo-cell{font-size:12px;color:var(--text2);padding-right:52px}
+.reginfo-row{display:flex;align-items:baseline;gap:6px;margin-bottom:3px}
+.reginfo-key{font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.04em;white-space:nowrap;flex-shrink:0;width:68px}
+.reginfo-val{font-size:12px;color:var(--text);line-height:1.5;word-break:break-word;white-space:normal}
 
 /* Catatan — tampil apa adanya */
-.catatan-cell{font-size:12px;color:var(--text2);line-height:1.55;white-space:pre-wrap;word-break:break-word;padding-right:48px}
+.catatan-cell{font-size:12px;color:var(--text2);line-height:1.55;white-space:normal;word-break:break-word;padding-right:48px}
 
 /* BADGES */
 .badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:700;white-space:nowrap}
@@ -2094,7 +2094,7 @@ function renderList(){
       const regRows = [];
       if(r.idKomp) regRows.push(`<div class="reginfo-row"><span class="reginfo-key">ID Komp</span><span class="reginfo-val">${hl(r.idKomp)}</span></div>`);
       if(r.serial)  regRows.push(`<div class="reginfo-row"><span class="reginfo-key">No. Serial</span><span class="reginfo-val">${hl(r.serial)}</span></div>`);
-      if(r.code)    regRows.push(`<div class="reginfo-row"><span class="reginfo-key">Kode Reg</span><span class="reginfo-val">${hl((r.code||'').replace(/\n/g,'<br>'))}</span></div>`);
+      if(r.code)    regRows.push(`<div class="reginfo-row"><span class="reginfo-key">Kode Reg</span><span class="reginfo-val" style="font-family:monospace;font-size:11.5px">${hl((r.code||'').replace(/\n/g,' '))}</span></div>`);
       const hasReg = regRows.length > 0;
       const regHtml = hasReg
         ? `<div class="copy-cell">
