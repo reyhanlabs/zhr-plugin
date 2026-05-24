@@ -142,12 +142,46 @@ textarea{resize:vertical;min-height:80px}
 
 /* TABLE */
 .tbl-wrap{overflow-x:auto}
-table{width:100%;border-collapse:collapse;min-width:900px}
-thead th{background:var(--surface2);padding:9px 11px;text-align:left;font-size:10px;font-weight:700;color:var(--text2);border-bottom:2px solid var(--border);white-space:nowrap;text-transform:uppercase;letter-spacing:.05em}
+table{width:100%;border-collapse:collapse;min-width:1100px}
+thead th{background:var(--surface2);padding:9px 11px;text-align:left;font-size:11px;font-weight:700;color:var(--text2);border-bottom:2px solid var(--border);white-space:nowrap;text-transform:uppercase;letter-spacing:.05em}
 tbody tr{border-bottom:1px solid var(--border)}
 tbody tr:hover{background:var(--surface2)}
-tbody td{padding:9px 11px;font-size:12px;vertical-align:top}
-.td-name{font-weight:600;color:var(--primary);font-size:13px}
+tbody td{padding:9px 11px;font-size:12px;vertical-align:middle}
+.td-name{font-weight:600;color:var(--primary);font-size:12px}
+
+/* TABLE COLUMN WIDTHS — Daftar Registrasi */
+.col-no{width:40px;text-align:center;color:var(--text3)}
+.col-nama{min-width:160px;max-width:200px}
+.col-invoice{min-width:100px;max-width:130px}
+.col-paket{min-width:140px;max-width:200px}
+.col-tipe{min-width:120px;white-space:nowrap}
+.col-tgl{min-width:100px;white-space:nowrap;font-size:12px}
+.col-status{min-width:110px;white-space:nowrap}
+.col-user{min-width:100px;max-width:130px}
+.col-reginfo{min-width:180px;max-width:220px}
+.col-catatan{min-width:120px;max-width:160px}
+.col-aksi{min-width:120px;white-space:nowrap}
+
+/* Truncate with tooltip */
+.cell-truncate{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block;position:relative;cursor:default}
+.cell-truncate[title]:hover::after{
+  content:attr(title);
+  position:absolute;
+  left:0;top:calc(100% + 4px);
+  background:#1e293b;color:#fff;
+  padding:5px 10px;border-radius:7px;
+  font-size:11px;font-weight:400;
+  white-space:pre-wrap;word-break:break-word;
+  max-width:280px;min-width:120px;
+  z-index:999;box-shadow:0 4px 16px rgba(0,0,0,.25);
+  pointer-events:none;line-height:1.5;
+}
+
+/* Reg-info cell uniform font */
+.reginfo-cell{font-size:11px;font-family:inherit;color:var(--text2)}
+.reginfo-label{font-size:10px;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:.04em;display:block;margin-bottom:1px}
+.reginfo-value{font-family:monospace;font-size:11px;color:var(--text);display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:180px;cursor:pointer}
+.reginfo-value:hover{background:var(--primary-light);color:var(--primary);border-radius:3px;padding:0 2px}
 
 /* BADGES */
 .badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:700;white-space:nowrap}
@@ -543,9 +577,18 @@ mark.sh{background:#fef08a;color:#713f12;border-radius:2px;padding:0 1px}
             <table>
               <thead>
                 <tr>
-                  <th>No</th><th>Nama Perusahaan</th><th>Invoice</th><th>Paket Plugin</th>
-                  <th>Tipe</th><th>Tgl Reg</th><th>Aktif Hingga</th><th>Status</th><th>User Input</th>
-                  <th>Informasi Registrasi</th><th>Catatan</th><th>Aksi</th>
+                  <th class="col-no">No</th>
+                  <th class="col-nama">Nama Perusahaan</th>
+                  <th class="col-invoice">Invoice</th>
+                  <th class="col-paket">Paket Plugin</th>
+                  <th class="col-tipe">Tipe</th>
+                  <th class="col-tgl">Tgl Reg</th>
+                  <th class="col-tgl">Aktif Hingga</th>
+                  <th class="col-status">Status</th>
+                  <th class="col-user">User Input</th>
+                  <th class="col-reginfo">Informasi Registrasi</th>
+                  <th class="col-catatan">Catatan</th>
+                  <th class="col-aksi">Aksi</th>
                 </tr>
               </thead>
               <tbody id="tbl-body"></tbody>
@@ -2040,26 +2083,32 @@ function renderList(){
         x.serial===r.serial
       ).length : 0;
       const hasHistory = histCount > 1;
+
+      // Reginfo parts
+      const regParts = [];
+      if(r.idKomp) regParts.push(`<div style="margin-bottom:3px"><span class="reginfo-label">ID Komputer</span><span class="reginfo-value copy-field" onclick="copyRegField(this,'${(r.idKomp||'').replace(/'/g,"\\'")}'" title="${(r.idKomp||'').replace(/"/g,'&quot;')}">${hl(r.idKomp)}</span></div>`);
+      if(r.serial) regParts.push(`<div style="margin-bottom:3px"><span class="reginfo-label">No. Serial</span><span class="reginfo-value copy-field" onclick="copyRegField(this,'${(r.serial||'').replace(/'/g,"\\'")}'" title="${(r.serial||'').replace(/"/g,'&quot;')}">${hl(r.serial)}</span></div>`);
+      if(r.code) regParts.push(`<div style="margin-bottom:3px"><span class="reginfo-label">Kode Reg</span><span class="reginfo-value copy-field" onclick="copyRegField(this,'${(r.code||'').replace(/'/g,"\\'").replace(/\n/g,'\\n')}'" title="${(r.code||'').replace(/"/g,'&quot;').replace(/\n/g,' | ')}">${hl((r.code||'').split('\n')[0])}${r.code.includes('\n')?'…':''}</span></div>`);
+      const regHtml = regParts.length
+        ? `<div class="reginfo-cell">${regParts.join('')}<button class="btn btn-secondary btn-sm" style="margin-top:4px;font-size:11px;padding:4px 8px" onclick="copyAllRegInfo('${(r.idKomp||'').replace(/'/g,"\\'")}','${(r.serial||'').replace(/'/g,"\\'")}','${(r.code||'').replace(/'/g,"\\'").replace(/\n/g,'\\n')}')" title="Copy semua info registrasi">⎘ Salin Semua</button></div>`
+        : `<span style="color:var(--text3);font-size:12px">–</span>`;
+
+      const catatanText = r.catatan||'';
+      const catatanShort = catatanText.length > 40 ? catatanText.substring(0,40)+'…' : catatanText;
+
       return `<tr>
-      <td style="color:var(--text3)">${(currentPage-1)*pageSize+i+1}</td>
-      <td class="td-name">${hl(r.nama)}</td>
-      <td>${hl(r.invoice||'–')}</td>
-      <td>${(r.paket||'–').split(',').map(p=>`<span class="badge badge-blue" style="margin:1px">${q?highlightText(p.trim(),q):p.trim()}</span>`).join(' ')}</td>
-      <td>${tipeBadge(r.tipe)}</td>
-      <td>${fmtDate(r.tglReg)}</td>
-      <td>${fmtDate(r.tglAktif)}</td>
-      <td>${statusBadge(getStatus(r.tglAktif))}</td>
-      <td style="font-size:11px;color:var(--text2)">${hl(r.userInput||'–')}</td>
-      <td style="font-size:10px;font-family:monospace;color:var(--text2);max-width:180px;word-break:break-all">
-        <div style="position:relative;display:flex;flex-direction:column;gap:1px">
-          ${r.idKomp?`<div><span style="color:var(--text3);font-size:9px">ID Komputer:</span><br><span class="copy-field" onclick="copyRegField(this,'${(r.idKomp||'').replace(/'/g,"\\'")}')" title="Klik untuk copy">${hl(r.idKomp)}</span></div>`:''}
-          ${r.serial?`<div><span style="color:var(--text3);font-size:9px">No. Serial:</span><br><span class="copy-field" onclick="copyRegField(this,'${(r.serial||'').replace(/'/g,"\\'")}')" title="Klik untuk copy">${hl(r.serial)}</span></div>`:''}
-          ${r.code?`<div><span style="color:var(--text3);font-size:9px">Kode Reg:</span><br><span class="copy-field" onclick="copyRegField(this,'${(r.code||'').replace(/'/g,"\\'").replace(/\n/g,'\\n')}')" title="Klik untuk copy" style="font-size:9px">${hl(r.code)}</span></div>`:''}
-          ${(r.idKomp||r.serial||r.code)?`<button class="btn btn-secondary btn-sm" style="margin-top:4px;font-size:10px;padding:3px 7px" onclick="copyAllRegInfo('${(r.idKomp||'').replace(/'/g,"\\'")}','${(r.serial||'').replace(/'/g,"\\'")}','${(r.code||'').replace(/'/g,"\\'").replace(/\n/g,'\\n')}')" title="Copy semua info registrasi">⎘ Copy Semua</button>`:''}
-        </div>
-      </td>
-      <td style="font-size:11px;color:var(--text2);max-width:100px">${hl(r.catatan||'')}</td>
-      <td><div style="display:flex;gap:3px;flex-wrap:wrap">
+      <td class="col-no" style="color:var(--text3);font-size:12px">${(currentPage-1)*pageSize+i+1}</td>
+      <td class="col-nama td-name">${hl(r.nama)}</td>
+      <td class="col-invoice" style="font-size:12px">${hl(r.invoice||'–')}</td>
+      <td class="col-paket">${(r.paket||'–').split(',').map(p=>`<span class="badge badge-blue" style="margin:1px;font-size:10px">${q?highlightText(p.trim(),q):p.trim()}</span>`).join(' ')}</td>
+      <td class="col-tipe">${tipeBadge(r.tipe)}</td>
+      <td class="col-tgl" style="font-size:12px">${fmtDate(r.tglReg)}</td>
+      <td class="col-tgl" style="font-size:12px">${fmtDate(r.tglAktif)}</td>
+      <td class="col-status">${statusBadge(getStatus(r.tglAktif))}</td>
+      <td class="col-user"><span class="cell-truncate" style="font-size:12px;max-width:120px" title="${(r.userInput||'').replace(/"/g,'&quot;')}">${hl(r.userInput||'–')}</span></td>
+      <td class="col-reginfo">${regHtml}</td>
+      <td class="col-catatan"><span class="cell-truncate" style="font-size:12px;max-width:150px" title="${catatanText.replace(/"/g,'&quot;')}">${catatanShort||'–'}</span></td>
+      <td class="col-aksi"><div style="display:flex;gap:3px;flex-wrap:wrap">
         <button class="btn btn-secondary btn-sm btn-icon" title="Edit" onclick="openEdit('${r.firestoreId}')">✏</button>
         <button class="btn btn-history btn-sm btn-icon" title="Riwayat Perubahan" onclick="openUpdateHistory('${r.firestoreId}','${(r.nama||'').replace(/'/g,"\\'")}')">🕐</button>
         ${hasHistory?`<button class="btn btn-history btn-sm btn-icon" title="Lihat Riwayat (${histCount} record)" onclick="openHistory('${encodeURIComponent(r.nama||'')}','${r.serial||''}')">📜</button>`:''}
