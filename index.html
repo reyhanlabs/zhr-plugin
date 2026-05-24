@@ -158,30 +158,64 @@ tbody td{padding:9px 11px;font-size:12px;vertical-align:middle}
 .col-tgl{min-width:100px;white-space:nowrap;font-size:12px}
 .col-status{min-width:110px;white-space:nowrap}
 .col-user{min-width:100px;max-width:130px}
-.col-reginfo{min-width:180px;max-width:220px}
-.col-catatan{min-width:120px;max-width:160px}
+.col-reginfo{min-width:200px;max-width:240px}
+.col-catatan{min-width:130px;max-width:180px}
 .col-aksi{min-width:120px;white-space:nowrap}
 
-/* Truncate with tooltip */
-.cell-truncate{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block;position:relative;cursor:default}
-.cell-truncate[title]:hover::after{
-  content:attr(title);
-  position:absolute;
-  left:0;top:calc(100% + 4px);
-  background:#1e293b;color:#fff;
-  padding:5px 10px;border-radius:7px;
-  font-size:11px;font-weight:400;
-  white-space:pre-wrap;word-break:break-word;
-  max-width:280px;min-width:120px;
-  z-index:999;box-shadow:0 4px 16px rgba(0,0,0,.25);
-  pointer-events:none;line-height:1.5;
+/* ── REGINFO CELL ─────────────────────────────────── */
+.reginfo-cell{display:flex;flex-direction:column;gap:4px}
+.reginfo-chip{
+  display:inline-flex;align-items:center;gap:5px;
+  background:var(--surface2);border:1px solid var(--border);
+  border-radius:6px;padding:3px 7px;
+  font-size:11px;line-height:1.3;
+  cursor:pointer;transition:background .12s,border-color .12s;
+  max-width:200px;overflow:hidden;
+  position:relative;
 }
+.reginfo-chip:hover{background:var(--primary-light);border-color:var(--primary)}
+.reginfo-chip-label{
+  font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;
+  color:var(--text3);white-space:nowrap;flex-shrink:0;
+}
+.reginfo-chip:hover .reginfo-chip-label{color:var(--primary)}
+.reginfo-chip-val{
+  font-family:monospace;font-size:11px;color:var(--text);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  max-width:140px;
+}
+.reginfo-chip:hover .reginfo-chip-val{color:var(--primary-dark)}
+.reginfo-chip[data-tip]:hover::after{
+  content:attr(data-tip);
+  position:absolute;left:0;top:calc(100% + 5px);
+  background:#1e293b;color:#fff;
+  padding:6px 10px;border-radius:7px;
+  font-size:11px;font-family:monospace;
+  white-space:pre-wrap;word-break:break-all;
+  max-width:300px;min-width:140px;
+  z-index:9999;box-shadow:0 4px 18px rgba(0,0,0,.28);
+  pointer-events:none;line-height:1.6;
+  border:1px solid rgba(255,255,255,.08);
+}
+.reginfo-copy-all{
+  display:inline-flex;align-items:center;gap:4px;
+  margin-top:2px;
+  background:none;border:1px dashed var(--border2);
+  border-radius:6px;padding:3px 8px;
+  font-size:10px;font-weight:600;color:var(--text3);
+  cursor:pointer;transition:all .12s;font-family:inherit;
+  width:fit-content;
+}
+.reginfo-copy-all:hover{border-color:var(--primary);color:var(--primary);background:var(--primary-light)}
 
-/* Reg-info cell uniform font */
-.reginfo-cell{font-size:11px;font-family:inherit;color:var(--text2)}
-.reginfo-label{font-size:10px;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:.04em;display:block;margin-bottom:1px}
-.reginfo-value{font-family:monospace;font-size:11px;color:var(--text);display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:180px;cursor:pointer}
-.reginfo-value:hover{background:var(--primary-light);color:var(--primary);border-radius:3px;padding:0 2px}
+/* ── CATATAN CELL ─────────────────────────────────── */
+.catatan-cell{
+  font-size:12px;color:var(--text2);
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;
+  overflow:hidden;line-height:1.45;max-width:160px;
+  cursor:default;
+}
+.catatan-cell.has-more{cursor:help;border-bottom:1px dashed var(--border2)}
 
 /* BADGES */
 .badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:700;white-space:nowrap}
@@ -2084,17 +2118,33 @@ function renderList(){
       ).length : 0;
       const hasHistory = histCount > 1;
 
-      // Reginfo parts
-      const regParts = [];
-      if(r.idKomp) regParts.push(`<div style="margin-bottom:3px"><span class="reginfo-label">ID Komputer</span><span class="reginfo-value copy-field" onclick="copyRegField(this,'${(r.idKomp||'').replace(/'/g,"\\'")}'" title="${(r.idKomp||'').replace(/"/g,'&quot;')}">${hl(r.idKomp)}</span></div>`);
-      if(r.serial) regParts.push(`<div style="margin-bottom:3px"><span class="reginfo-label">No. Serial</span><span class="reginfo-value copy-field" onclick="copyRegField(this,'${(r.serial||'').replace(/'/g,"\\'")}'" title="${(r.serial||'').replace(/"/g,'&quot;')}">${hl(r.serial)}</span></div>`);
-      if(r.code) regParts.push(`<div style="margin-bottom:3px"><span class="reginfo-label">Kode Reg</span><span class="reginfo-value copy-field" onclick="copyRegField(this,'${(r.code||'').replace(/'/g,"\\'").replace(/\n/g,'\\n')}'" title="${(r.code||'').replace(/"/g,'&quot;').replace(/\n/g,' | ')}">${hl((r.code||'').split('\n')[0])}${r.code.includes('\n')?'…':''}</span></div>`);
-      const regHtml = regParts.length
-        ? `<div class="reginfo-cell">${regParts.join('')}<button class="btn btn-secondary btn-sm" style="margin-top:4px;font-size:11px;padding:4px 8px" onclick="copyAllRegInfo('${(r.idKomp||'').replace(/'/g,"\\'")}','${(r.serial||'').replace(/'/g,"\\'")}','${(r.code||'').replace(/'/g,"\\'").replace(/\n/g,'\\n')}')" title="Copy semua info registrasi">⎘ Salin Semua</button></div>`
+      // Reginfo chips
+      const escAttr = (s) => (s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
+      const escJs   = (s) => (s||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/\n/g,'\\n');
+      const chipHtml = (label, raw, valDisplay) => {
+        const tip = escAttr(raw);
+        const jsVal = escJs(raw);
+        return `<span class="reginfo-chip" data-tip="${tip}" onclick="copyRegField(this,'${jsVal}')" title="Klik untuk copy">
+          <span class="reginfo-chip-label">${label}</span>
+          <span class="reginfo-chip-val">${valDisplay}</span>
+        </span>`;
+      };
+      const chips = [];
+      if(r.idKomp) chips.push(chipHtml('ID Komp', r.idKomp, hl(r.idKomp)));
+      if(r.serial) chips.push(chipHtml('Serial', r.serial, hl(r.serial)));
+      if(r.code){
+        const codeFirst = (r.code||'').split('\n')[0];
+        const codeTip = (r.code||'').replace(/\n/g,'\n');
+        chips.push(chipHtml('Kode Reg', r.code, hl(codeFirst)+(r.code.includes('\n')?'…':'')));
+      }
+      const regHtml = chips.length
+        ? `<div class="reginfo-cell">${chips.join('')}
+            <button class="reginfo-copy-all" onclick="copyAllRegInfo('${escJs(r.idKomp||'')}','${escJs(r.serial||'')}','${escJs(r.code||'')}')">⎘ Salin semua</button>
+           </div>`
         : `<span style="color:var(--text3);font-size:12px">–</span>`;
 
-      const catatanText = r.catatan||'';
-      const catatanShort = catatanText.length > 40 ? catatanText.substring(0,40)+'…' : catatanText;
+      const catatanText = (r.catatan||'').trim();
+      const catatanLong = catatanText.length > 60;
 
       return `<tr>
       <td class="col-no" style="color:var(--text3);font-size:12px">${(currentPage-1)*pageSize+i+1}</td>
@@ -2105,9 +2155,9 @@ function renderList(){
       <td class="col-tgl" style="font-size:12px">${fmtDate(r.tglReg)}</td>
       <td class="col-tgl" style="font-size:12px">${fmtDate(r.tglAktif)}</td>
       <td class="col-status">${statusBadge(getStatus(r.tglAktif))}</td>
-      <td class="col-user"><span class="cell-truncate" style="font-size:12px;max-width:120px" title="${(r.userInput||'').replace(/"/g,'&quot;')}">${hl(r.userInput||'–')}</span></td>
+      <td class="col-user" style="font-size:12px;color:var(--text2)" title="${escAttr(r.userInput||'')}">${hl(r.userInput||'–')}</td>
       <td class="col-reginfo">${regHtml}</td>
-      <td class="col-catatan"><span class="cell-truncate" style="font-size:12px;max-width:150px" title="${catatanText.replace(/"/g,'&quot;')}">${catatanShort||'–'}</span></td>
+      <td class="col-catatan" title="${escAttr(catatanText)}"><div class="catatan-cell ${catatanLong?'has-more':''}">${hl(catatanText)||'<span style=\"color:var(--text3)\">–</span>'}</div></td>
       <td class="col-aksi"><div style="display:flex;gap:3px;flex-wrap:wrap">
         <button class="btn btn-secondary btn-sm btn-icon" title="Edit" onclick="openEdit('${r.firestoreId}')">✏</button>
         <button class="btn btn-history btn-sm btn-icon" title="Riwayat Perubahan" onclick="openUpdateHistory('${r.firestoreId}','${(r.nama||'').replace(/'/g,"\\'")}')">🕐</button>
