@@ -660,9 +660,9 @@ tbody tr:hover{background:var(--surface2)}
 
 /* ===== YANG SUDAH ADA ===== */
 </style>
-<script src="https://www.gstatic.com/firebasejs/10.1.0/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.1.0/firebase-firestore.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.1.0/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/11.0.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/11.0.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
 
@@ -1339,6 +1339,8 @@ tbody tr:hover{background:var(--surface2)}
 
 <script>
 // ========== FIREBASE CONFIG ==========
+let firebaseReady=false;
+
 const firebaseConfig={
   apiKey:"AIzaSyCKFMyRhFVTIyYL_l-Cxn4LaVLq2fMyJMk",
   authDomain:"plugin-transaksi-c0da0.firebaseapp.com",
@@ -1348,30 +1350,58 @@ const firebaseConfig={
   appId:"1:1010706549843:web:0c8b047f2f5cf2be0e3f57"
 };
 
-firebase.initializeApp(firebaseConfig);
-const auth=firebase.auth();
-const db=firebase.firestore();
+let auth=null;
+let db=null;
+
+// Initialize Firebase dengan error handling
+try{
+  if(typeof firebase!=='undefined'){
+    firebase.initializeApp(firebaseConfig);
+    auth=firebase.auth();
+    db=firebase.firestore();
+    firebaseReady=true;
+    console.log('✅ Firebase initialized successfully');
+  }else{
+    throw new Error('Firebase SDK not loaded');
+  }
+}catch(e){
+  console.error('❌ Firebase initialization error:', e);
+  console.log('⚠️ Falling back to localStorage mode...');
+  // Fallback functions akan didefine di bawah
+}
 
 let currentUser=null;
 let currentUserRole='user';
 let DB=[];
 
 // ========== AUTH ==========
-auth.onAuthStateChanged(user=>{
-  if(user){
-    currentUser=user;
-    document.getElementById('auth-screen').style.display='none';
-    document.getElementById('app').style.display='flex';
-    updateUserUI();
-    checkUserRole();
-    loadData();
-  } else{
-    document.getElementById('auth-screen').style.display='flex';
-    document.getElementById('app').style.display='none';
+function setupAuthListener(){
+  if(!auth){
+    console.log('Firebase not available, using demo mode');
+    return;
   }
-});
+  
+  auth.onAuthStateChanged(user=>{
+    if(user){
+      currentUser=user;
+      document.getElementById('auth-screen').style.display='none';
+      document.getElementById('app').style.display='flex';
+      updateUserUI();
+      checkUserRole();
+      loadData();
+    } else{
+      document.getElementById('auth-screen').style.display='flex';
+      document.getElementById('app').style.display='none';
+    }
+  });
+}
 
 function signInGoogle(){
+  if(!auth){
+    showToast('❌ Firebase tidak tersedia. Gunakan demo version atau setup Firebase.','danger');
+    return;
+  }
+  
   document.getElementById('auth-loading').style.display='block';
   const authDenied=document.getElementById('auth-denied');
   authDenied.style.display='none';
@@ -1379,28 +1409,29 @@ function signInGoogle(){
   const provider=new firebase.auth.GoogleAuthProvider();
   auth.signInWithPopup(provider)
     .then(result=>{
-      console.log('Login berhasil:', result.user.email);
+      console.log('✅ Login berhasil:', result.user.email);
       document.getElementById('auth-loading').style.display='none';
     })
     .catch(err=>{
-      console.error('Login error:', err);
+      console.error('❌ Login error:', err);
       authDenied.style.display='block';
       authDenied.textContent='❌ '+err.message;
       document.getElementById('auth-loading').style.display='none';
       
-      // Helpful suggestions based on error
       if(err.code==='auth/popup-blocked'){
         authDenied.textContent='❌ Pop-up blocked. Pastikan allow pop-ups di browser settings.';
       } else if(err.code==='auth/network-request-failed'){
         authDenied.textContent='❌ Network error. Check internet connection.';
       } else if(err.code==='auth/operation-not-supported-in-this-environment'){
-        authDenied.textContent='❌ Firebase tidak bisa initialized. Check console for details.';
+        authDenied.textContent='❌ Firebase tidak bisa initialized. Lihat console untuk detail.';
       }
     });
 }
 
 function signOutGoogle(){
-  auth.signOut();
+  if(auth){
+    auth.signOut();
+  }
 }
 
 function updateUserUI(){
@@ -1411,46 +1442,137 @@ function updateUserUI(){
 }
 
 async function checkUserRole(){
+  if(!db){
+    currentUserRole='user';
+    updateSysInfo();
+    return;
+  }
+  
   try{
     const doc=await db.collection('users').doc(currentUser.uid).get();
     if(doc.exists){
       currentUserRole=doc.data().role||'user';
     }
   }catch(e){
-    console.log('Role check error');
+    console.log('Role check error (using default user role)');
   }
   updateSysInfo();
 }
 
 // ========== DATA LOADING ==========
 async function loadData(){
+  if(!db){
+    console.log('Firestore not available, skipping data load');
+    return;
+  }
+  
   try{
     showLoading(true);
-    console.log('Loading data from Firestore...');
+    console.log('📡 Loading data from Firestore...');
     const snap=await db.collection('registrasi').orderBy('tglReg','desc').get();
     DB=snap.docs.map(d=>({...d.data(),id:d.id}));
-    console.log('Data loaded successfully:', DB.length, 'records');
+    console.log('✅ Data loaded successfully:', DB.length, 'records');
     renderTable();
     updateDashboard();
     showLoading(false);
   }catch(e){
-    console.error('Data loading error:', e);
+    console.error('❌ Data loading error:', e);
     showLoading(false);
     
-    // Better error messages
     let errorMsg='Error memuat data: '+e.message;
     if(e.code==='permission-denied'){
       errorMsg='❌ Akses denied. Check Firestore rules atau login lagi.';
     } else if(e.code==='unavailable'){
       errorMsg='❌ Firestore tidak tersedia. Check internet connection.';
-    } else if(e.code==='not-initialized'){
-      errorMsg='❌ Firebase belum initialized. Refresh page dan try again.';
     }
     
     showToast(errorMsg,'danger');
     console.log('Full error:', e);
   }
 }
+
+// ========== FORM SUBMISSION ==========
+async function submitForm(e){
+  e.preventDefault();
+  
+  if(!db){
+    showToast('❌ Firebase tidak tersedia. Gunakan demo version.','danger');
+    return;
+  }
+  
+  const editId=document.getElementById('form-registrasi').getAttribute('data-edit-id');
+  const data={
+    nama:document.getElementById('form-nama').value,
+    invoice:document.getElementById('form-invoice').value,
+    paket:document.getElementById('form-paket').value,
+    tipe:document.getElementById('form-tipe').value,
+    tglReg:document.getElementById('form-tglReg').value,
+    tglAktif:document.getElementById('form-tglAktif').value,
+    catatan:document.getElementById('form-catatan').value,
+    userInput:currentUser.email,
+    updateAt:new Date().toISOString()
+  };
+
+  showLoading(true);
+  try{
+    if(editId){
+      await db.collection('registrasi').doc(editId).update(data);
+      showToast('✅ Data berhasil diperbarui','success');
+    }else{
+      await db.collection('registrasi').add(data);
+      showToast('✅ Data berhasil disimpan','success');
+    }
+    resetForm();
+    loadData();
+    showPage('data','Data Registrasi');
+  }catch(e){
+    showToast('❌ Error: '+e.message,'danger');
+    console.error('Form submission error:', e);
+  }
+  showLoading(false);
+}
+
+// ========== DELETE ==========
+async function deleteRow(id){
+  if(!confirm('Apakah Anda yakin ingin menghapus data ini?')) return;
+  
+  if(!db){
+    showToast('❌ Firebase tidak tersedia.','danger');
+    return;
+  }
+  
+  showLoading(true);
+  try{
+    await db.collection('registrasi').doc(id).delete();
+    showToast('✅ Data berhasil dihapus','success');
+    loadData();
+  }catch(e){
+    showToast('❌ Error: '+e.message,'danger');
+    console.error('Delete error:', e);
+  }
+  showLoading(false);
+}
+
+// Initialize auth listener saat page loaded
+document.addEventListener('DOMContentLoaded',()=>{
+  const savedTheme=localStorage.getItem('theme')||'light';
+  document.documentElement.setAttribute('data-theme',savedTheme);
+  document.querySelector('.theme-toggle').textContent=savedTheme==='dark'?'☀️':'🌙';
+  
+  // Setup auth listener
+  if(firebaseReady){
+    setupAuthListener();
+  }else{
+    console.warn('⚠️ Firebase not ready. Please setup Firebase or use demo version.');
+    // Show helpful message
+    setTimeout(()=>{
+      const authDenied=document.getElementById('auth-denied');
+      authDenied.style.display='block';
+      authDenied.innerHTML=`❌ <strong>Firebase tidak ter-load.</strong><br>Solusi:<br>1. Gunakan index-enhanced-DEMO.html untuk testing<br>2. Atau setup Firebase sesuai panduan di TROUBLESHOOTING_LOGIN.md<br>3. Check console (F12) untuk detail error`;
+    },500);
+  }
+});
+
 
 function renderTable(){
   const tbody=document.getElementById('table-body');
@@ -1530,43 +1652,12 @@ function updateDashboard(){
   document.getElementById('upcoming-expiry').innerHTML=upcomingHTML;
 }
 
-// ========== FORM ==========
+
+
+// ========== FORM HELPERS ==========
 function resetForm(){
   document.getElementById('form-registrasi').reset();
   document.getElementById('form-registrasi').removeAttribute('data-edit-id');
-}
-
-async function submitForm(e){
-  e.preventDefault();
-  const editId=document.getElementById('form-registrasi').getAttribute('data-edit-id');
-  const data={
-    nama:document.getElementById('form-nama').value,
-    invoice:document.getElementById('form-invoice').value,
-    paket:document.getElementById('form-paket').value,
-    tipe:document.getElementById('form-tipe').value,
-    tglReg:document.getElementById('form-tglReg').value,
-    tglAktif:document.getElementById('form-tglAktif').value,
-    catatan:document.getElementById('form-catatan').value,
-    userInput:currentUser.email,
-    updateAt:new Date().toISOString()
-  };
-
-  showLoading(true);
-  try{
-    if(editId){
-      await db.collection('registrasi').doc(editId).update(data);
-      showToast('Data berhasil diperbarui','success');
-    }else{
-      await db.collection('registrasi').add(data);
-      showToast('Data berhasil disimpan','success');
-    }
-    resetForm();
-    loadData();
-    showPage('data','Data Registrasi');
-  }catch(e){
-    showToast('Error: '+e.message,'danger');
-  }
-  showLoading(false);
 }
 
 async function editRow(id){
@@ -1581,19 +1672,6 @@ async function editRow(id){
   document.getElementById('form-catatan').value=row.catatan||'';
   document.getElementById('form-registrasi').setAttribute('data-edit-id',id);
   showPage('form','Edit Registrasi');
-}
-
-async function deleteRow(id){
-  if(!confirm('Apakah Anda yakin ingin menghapus data ini?')) return;
-  showLoading(true);
-  try{
-    await db.collection('registrasi').doc(id).delete();
-    showToast('Data berhasil dihapus','success');
-    loadData();
-  }catch(e){
-    showToast('Error: '+e.message,'danger');
-  }
-  showLoading(false);
 }
 
 // ========== UI FUNCTIONS ==========
@@ -1739,13 +1817,7 @@ function updateSysInfo(){
   `;
 }
 
-// ========== INIT ==========
-document.addEventListener('DOMContentLoaded',()=>{
-  const savedTheme=localStorage.getItem('theme')||'light';
-  document.documentElement.setAttribute('data-theme',savedTheme);
-  document.querySelector('.theme-toggle').textContent=savedTheme==='dark'?'☀️':'🌙';
-});
-
+// ========== KEYBOARD SHORTCUTS ==========
 document.addEventListener('keydown',e=>{
   if(e.key==='Escape') closeModal();
 });
