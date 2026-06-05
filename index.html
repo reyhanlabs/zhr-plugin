@@ -1373,12 +1373,30 @@ auth.onAuthStateChanged(user=>{
 
 function signInGoogle(){
   document.getElementById('auth-loading').style.display='block';
+  const authDenied=document.getElementById('auth-denied');
+  authDenied.style.display='none';
+  
   const provider=new firebase.auth.GoogleAuthProvider();
-  auth.signInWithPopup(provider).catch(err=>{
-    document.getElementById('auth-denied').style.display='block';
-    document.getElementById('auth-denied').textContent=err.message;
-    document.getElementById('auth-loading').style.display='none';
-  });
+  auth.signInWithPopup(provider)
+    .then(result=>{
+      console.log('Login berhasil:', result.user.email);
+      document.getElementById('auth-loading').style.display='none';
+    })
+    .catch(err=>{
+      console.error('Login error:', err);
+      authDenied.style.display='block';
+      authDenied.textContent='❌ '+err.message;
+      document.getElementById('auth-loading').style.display='none';
+      
+      // Helpful suggestions based on error
+      if(err.code==='auth/popup-blocked'){
+        authDenied.textContent='❌ Pop-up blocked. Pastikan allow pop-ups di browser settings.';
+      } else if(err.code==='auth/network-request-failed'){
+        authDenied.textContent='❌ Network error. Check internet connection.';
+      } else if(err.code==='auth/operation-not-supported-in-this-environment'){
+        authDenied.textContent='❌ Firebase tidak bisa initialized. Check console for details.';
+      }
+    });
 }
 
 function signOutGoogle(){
@@ -1408,14 +1426,29 @@ async function checkUserRole(){
 async function loadData(){
   try{
     showLoading(true);
+    console.log('Loading data from Firestore...');
     const snap=await db.collection('registrasi').orderBy('tglReg','desc').get();
     DB=snap.docs.map(d=>({...d.data(),id:d.id}));
+    console.log('Data loaded successfully:', DB.length, 'records');
     renderTable();
     updateDashboard();
     showLoading(false);
   }catch(e){
-    showToast('Error memuat data: '+e.message,'danger');
+    console.error('Data loading error:', e);
     showLoading(false);
+    
+    // Better error messages
+    let errorMsg='Error memuat data: '+e.message;
+    if(e.code==='permission-denied'){
+      errorMsg='❌ Akses denied. Check Firestore rules atau login lagi.';
+    } else if(e.code==='unavailable'){
+      errorMsg='❌ Firestore tidak tersedia. Check internet connection.';
+    } else if(e.code==='not-initialized'){
+      errorMsg='❌ Firebase belum initialized. Refresh page dan try again.';
+    }
+    
+    showToast(errorMsg,'danger');
+    console.log('Full error:', e);
   }
 }
 
