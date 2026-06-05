@@ -3,9 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>🎯 Registrasi Plugin Transaksi Customer</title>
+<title>🎯 Registrasi Plugin Transaksi</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link href="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.css" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/11.0.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/11.0.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore-compat.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 
@@ -14,7 +16,6 @@
   --gradient-success:linear-gradient(135deg,#00d084 0%,#0cce6b 100%);
   --gradient-warning:linear-gradient(135deg,#ff6b6b 0%,#ee5a6f 100%);
   --gradient-info:linear-gradient(135deg,#4facfe 0%,#00f2fe 100%);
-  --gradient-accent:linear-gradient(135deg,#fa709a 0%,#fee140 100%);
   --bg:#f8fafc;
   --surface:#ffffff;
   --surface2:#f1f5f9;
@@ -37,21 +38,6 @@
   --sidebar-active:rgba(99,102,241,.2);
   --shadow:0 4px 6px rgba(0,0,0,.07);
   --shadow-lg:0 20px 40px rgba(0,0,0,.1);
-  --shadow-xl:0 25px 50px rgba(0,0,0,.15);
-}
-
-[data-theme="dark"]{
-  --bg:#0f172a;
-  --surface:#1e293b;
-  --surface2:#334155;
-  --border:#475569;
-  --border2:#64748b;
-  --primary:#a78bfa;
-  --primary-light:#4c1d95;
-  --text:#f1f5f9;
-  --text2:#cbd5e1;
-  --text3:#94a3b8;
-  --sidebar-bg:#0f172a;
 }
 
 body{
@@ -60,163 +46,50 @@ body{
   color:var(--text);
   font-size:14px;
   min-height:100vh;
-  transition:background .3s,color .3s;
 }
 
-/* AUTH SCREEN */
-.auth-screen{
-  position:fixed;inset:0;
-  background:var(--gradient-primary);
-  display:flex;align-items:center;justify-content:center;z-index:1000;
-  flex-direction:column;gap:0;
-}
-
-.auth-card{
-  background:#fff;
-  border-radius:20px;
-  padding:50px 40px;
-  width:100%;max-width:420px;
-  text-align:center;
-  box-shadow:var(--shadow-xl);
-  animation:slideUp .4s ease-out;
-}
-
-@keyframes slideUp{
-  from{opacity:0;transform:translateY(30px)}
-  to{opacity:1;transform:translateY(0)}
-}
-
-.auth-logo{
-  font-size:56px;
-  margin-bottom:12px;
-  animation:float 3s ease-in-out infinite;
-}
-
-@keyframes float{
-  0%,100%{transform:translateY(0)}
-  50%{transform:translateY(-10px)}
-}
-
+/* AUTH DEMO SCREEN */
+.auth-demo{position:fixed;inset:0;background:var(--gradient-primary);display:flex;align-items:center;justify-content:center;z-index:1000;flex-direction:column;gap:0;}
+.auth-card{background:#fff;border-radius:20px;padding:50px 40px;width:100%;max-width:450px;text-align:center;box-shadow:var(--shadow-lg);animation:slideUp .4s ease-out;}
+@keyframes slideUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
+.auth-logo{font-size:56px;margin-bottom:12px;animation:float 3s ease-in-out infinite;}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
 .auth-title{font-size:24px;font-weight:800;background:var(--gradient-primary);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:8px}
-.auth-sub{font-size:14px;color:#6b7280;margin-bottom:32px;line-height:1.6}
-.auth-denied{background:#fee2e2;border:2px solid #fca5a5;border-radius:12px;padding:14px;font-size:13px;color:#dc2626;margin-bottom:16px;display:none;font-weight:600}
-.google-btn{
-  display:flex;align-items:center;justify-content:center;gap:12px;
-  width:100%;padding:12px;
-  border:2px solid #e5e7eb;border-radius:12px;
-  background:#fff;font-size:14px;font-weight:700;
-  color:#374151;cursor:pointer;
-  transition:all .3s;
-}
-.google-btn:hover{
-  border-color:var(--primary);
-  box-shadow:0 8px 20px rgba(102,126,234,.2);
-  transform:translateY(-2px);
-}
-.google-btn svg{width:20px;height:20px}
+.auth-sub{font-size:14px;color:#6b7280;margin-bottom:20px;line-height:1.6}
+.auth-demo-btn{display:flex;flex-direction:column;gap:10px;margin:20px 0}
+.demo-btn{width:100%;padding:12px;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;transition:all .3s;border:none;color:#fff;}
+.btn-demo-user{background:var(--gradient-primary);}
+.btn-demo-admin{background:var(--gradient-success);}
+.btn-demo-user:hover,.btn-demo-admin:hover{transform:translateY(-2px);box-shadow:var(--shadow-lg);}
+.demo-note{background:var(--warn-bg);border:2px solid var(--warn);border-radius:10px;padding:12px;margin-top:20px;font-size:12px;color:var(--warn);font-weight:600;line-height:1.5;}
 
 /* SIDEBAR */
 .app-shell{display:flex;min-height:100vh}
-.sidebar{
-  width:260px;background:var(--sidebar-bg);
-  flex-shrink:0;display:flex;flex-direction:column;
-  position:fixed;top:0;left:0;height:100vh;z-index:100;
-  transition:width .3s ease,transform .3s ease;
-  overflow:hidden;
-  box-shadow:var(--shadow-lg);
-}
+.sidebar{width:260px;background:var(--sidebar-bg);flex-shrink:0;display:flex;flex-direction:column;position:fixed;top:0;left:0;height:100vh;z-index:100;transition:width .3s ease;overflow:hidden;box-shadow:var(--shadow-lg);}
 .sidebar.collapsed{width:70px}
-
-.sidebar-brand{
-  padding:20px 16px;
-  border-bottom:1px solid rgba(255,255,255,.1);
-  display:flex;align-items:center;gap:12px;
-  min-height:70px;overflow:hidden;white-space:nowrap;
-  background:linear-gradient(135deg,rgba(102,126,234,.1) 0%,rgba(118,75,162,.1) 100%);
-}
-
+.sidebar-brand{padding:20px 16px;border-bottom:1px solid rgba(255,255,255,.1);display:flex;align-items:center;gap:12px;min-height:70px;background:linear-gradient(135deg,rgba(102,126,234,.1) 0%,rgba(118,75,162,.1) 100%);}
 .sidebar-brand-icon{font-size:28px;flex-shrink:0;animation:spin 20s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
-
 .sidebar-brand-text h1{font-size:13px;font-weight:800;color:#fff;line-height:1.3}
 .sidebar-brand-text p{font-size:10px;color:rgba(255,255,255,.5);margin-top:2px}
+.sidebar.collapsed .sidebar-brand-text{opacity:0;pointer-events:none;}
 
-.sidebar.collapsed .sidebar-brand-text,.sidebar.collapsed .nav-label{
-  opacity:0;pointer-events:none;
-}
+.sidebar-toggle{position:absolute;top:18px;right:12px;background:rgba(255,255,255,.1);border:none;color:#fff;width:32px;height:32px;border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .3s;flex-shrink:0;}
+.sidebar-toggle:hover{background:rgba(255,255,255,.2)}
 
-.sidebar-toggle{
-  position:absolute;top:18px;right:12px;
-  background:rgba(255,255,255,.1);border:none;
-  color:#fff;width:32px;height:32px;border-radius:8px;
-  cursor:pointer;display:flex;align-items:center;justify-content:center;
-  transition:all .3s;flex-shrink:0;
-  backdrop-filter:blur(10px);
-}
-.sidebar-toggle:hover{
-  background:rgba(255,255,255,.2);
-  transform:rotate(180deg);
-}
+.nav-section-label{padding:14px 14px 6px;font-size:10px;font-weight:800;color:rgba(255,255,255,.3);text-transform:uppercase;letter-spacing:.1em;white-space:nowrap;overflow:hidden;transition:opacity .2s;}
 
-.nav-section-label{
-  padding:14px 14px 6px;
-  font-size:10px;font-weight:800;
-  color:rgba(255,255,255,.3);
-  text-transform:uppercase;letter-spacing:.1em;
-  white-space:nowrap;overflow:hidden;transition:opacity .2s;
-}
-
-.nav-item{
-  display:flex;align-items:center;gap:12px;
-  padding:11px 14px;margin:3px 10px;
-  border-radius:10px;cursor:pointer;
-  color:var(--sidebar-text);font-size:13px;font-weight:600;
-  transition:all .3s;white-space:nowrap;overflow:hidden;
-  position:relative;
-}
-
-.nav-item:hover,.nav-item.active{
-  background:var(--sidebar-active);
-  color:#fff;
-  transform:translateX(4px);
-}
-
-.nav-item.active::after{
-  content:'';
-  position:absolute;right:0;top:0;bottom:0;
-  width:3px;background:var(--gradient-primary);
-  border-radius:3px 0 0 3px;
-}
-
+.nav-item{display:flex;align-items:center;gap:12px;padding:11px 14px;margin:3px 10px;border-radius:10px;cursor:pointer;color:var(--sidebar-text);font-size:13px;font-weight:600;transition:all .3s;white-space:nowrap;overflow:hidden;position:relative;}
+.nav-item:hover,.nav-item.active{background:var(--sidebar-active);color:#fff;transform:translateX(4px);}
+.nav-item.active::after{content:'';position:absolute;right:0;top:0;bottom:0;width:3px;background:var(--gradient-primary);border-radius:3px 0 0 3px;}
 .nav-item svg{width:18px;height:18px;flex-shrink:0}
 .nav-label{transition:opacity .2s}
 .sidebar.collapsed .nav-item{justify-content:center;padding:12px 0;margin:3px 8px}
 .sidebar.collapsed .nav-item .nav-label{display:none}
 
-.nav-tooltip{
-  display:none;position:absolute;left:calc(100% + 12px);
-  background:#1e293b;color:#fff;padding:7px 12px;
-  border-radius:8px;font-size:12px;white-space:nowrap;
-  pointer-events:none;z-index:200;font-weight:600;
-}
-.sidebar.collapsed .nav-item:hover .nav-tooltip{display:block}
-
 .sidebar-bottom{margin-top:auto;padding:16px 10px;border-top:1px solid rgba(255,255,255,.1)}
-.user-chip{
-  display:flex;align-items:center;gap:10px;padding:10px;
-  border-radius:10px;overflow:hidden;white-space:nowrap;
-  cursor:default;transition:all .3s;
-  background:rgba(255,255,255,.05);
-}
-
-.user-avatar{
-  width:36px;height:36px;border-radius:50%;object-fit:cover;
-  flex-shrink:0;
-  background:var(--gradient-primary);
-  display:flex;align-items:center;justify-content:center;
-  font-size:13px;font-weight:800;color:#fff;
-}
-
+.user-chip{display:flex;align-items:center;gap:10px;padding:10px;border-radius:10px;overflow:hidden;white-space:nowrap;background:rgba(255,255,255,.05);}
+.user-avatar{width:36px;height:36px;border-radius:50%;flex-shrink:0;background:var(--gradient-primary);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:#fff;}
 .user-info{overflow:hidden}
 .user-name{font-size:12px;font-weight:700;color:#fff;overflow:hidden;text-overflow:ellipsis}
 .user-email{font-size:10px;color:rgba(255,255,255,.5);overflow:hidden;text-overflow:ellipsis;margin-top:1px}
@@ -226,485 +99,124 @@ body{
 .main{margin-left:260px;flex:1;display:flex;flex-direction:column;transition:margin-left .3s}
 .main.expanded{margin-left:70px}
 
-.topbar{
-  background:var(--surface);border-bottom:2px solid var(--border);
-  padding:0 28px;height:64px;
-  display:flex;align-items:center;justify-content:space-between;
-  position:sticky;top:0;z-index:50;
-  box-shadow:var(--shadow);
-  background:linear-gradient(90deg,var(--surface) 0%,var(--surface2) 100%);
-}
-
+.topbar{background:var(--surface);border-bottom:2px solid var(--border);padding:0 28px;height:64px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;box-shadow:var(--shadow);background:linear-gradient(90deg,var(--surface) 0%,var(--surface2) 100%);}
 .topbar-left{display:flex;align-items:center;gap:14px}
 .topbar-title{font-size:16px;font-weight:800;background:var(--gradient-primary);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
 .topbar-sub{font-size:12px;color:var(--text3);margin-top:2px}
-
 .topbar-right{display:flex;align-items:center;gap:16px}
-.theme-toggle{
-  width:40px;height:40px;
-  border:2px solid var(--border);border-radius:10px;
-  background:var(--surface2);cursor:pointer;
-  display:flex;align-items:center;justify-content:center;
-  transition:all .3s;color:var(--text);font-size:18px;
-}
-.theme-toggle:hover{
-  border-color:var(--primary);
-  transform:rotate(20deg);
-}
+.theme-toggle{width:40px;height:40px;border:2px solid var(--border);border-radius:10px;background:var(--surface2);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .3s;color:var(--text);font-size:18px;}
+.theme-toggle:hover{border-color:var(--primary);transform:rotate(20deg)}
 
 .content{padding:28px;flex:1;overflow-y:auto}
 .page{display:none}
 .page.active{display:block;animation:fadeIn .3s ease-out}
-
-@keyframes fadeIn{
-  from{opacity:0;transform:translateY(10px)}
-  to{opacity:1;transform:translateY(0)}
-}
-
-/* LOADING OVERLAY */
-.loading-overlay{
-  position:fixed;inset:0;background:rgba(0,0,0,.6);
-  z-index:500;display:none;align-items:center;justify-content:center;
-  flex-direction:column;gap:16px;
-  backdrop-filter:blur(5px);
-}
-.loading-overlay.show{display:flex}
-
-.spinner{
-  width:48px;height:48px;
-  border:4px solid rgba(255,255,255,.2);
-  border-top-color:#fff;border-radius:50%;
-  animation:spin 1s linear infinite;
-}
-
-@keyframes spin{to{transform:rotate(360deg)}}
-.loading-msg{color:#fff;font-size:14px;font-weight:700}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
 
 /* CARDS */
-.card{
-  background:var(--surface);
-  border:1px solid var(--border);
-  border-radius:16px;
-  box-shadow:var(--shadow);
-  margin-bottom:24px;
-  overflow:hidden;
-  transition:all .3s;
-}
-
-.card:hover{
-  box-shadow:var(--shadow-lg);
-  transform:translateY(-2px);
-}
-
-.card-header{
-  padding:18px 20px;
-  border-bottom:1px solid var(--border);
-  display:flex;align-items:center;justify-content:space-between;
-  gap:12px;flex-wrap:wrap;
-  background:linear-gradient(90deg,transparent 0%,rgba(102,126,234,.03) 100%);
-}
-
+.card{background:var(--surface);border:1px solid var(--border);border-radius:16px;box-shadow:var(--shadow);margin-bottom:24px;overflow:hidden;transition:all .3s;}
+.card:hover{box-shadow:var(--shadow-lg);transform:translateY(-2px)}
+.card-header{padding:18px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;background:linear-gradient(90deg,transparent 0%,rgba(102,126,234,.03) 100%);}
 .card-header h2{font-size:15px;font-weight:800;color:var(--text)}
 .card-body{padding:20px}
 
+/* STAT CARDS */
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;box-shadow:var(--shadow);transition:all .3s;position:relative;overflow:hidden;}
+.stat-card::before{content:'';position:absolute;top:-50%;right:-50%;width:200px;height:200px;background:linear-gradient(135deg,rgba(102,126,234,.1) 0%,rgba(118,75,162,.05) 100%);border-radius:50%;pointer-events:none;}
+.stat-card:hover{box-shadow:var(--shadow-lg);transform:translateY(-4px)}
+.stat-label{font-size:12px;color:var(--text2);margin-bottom:8px;font-weight:700;text-transform:uppercase;letter-spacing:.06em}
+.stat-value{font-size:32px;font-weight:800;line-height:1;background:var(--gradient-primary);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.stat-sub{font-size:12px;color:var(--text3);margin-top:6px;font-weight:600}
+.stat-icon{position:absolute;top:14px;right:14px;font-size:28px;opacity:.15}
+
+/* GRID */
 .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
 .grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
 .grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:20px}
 
-@media(max-width:1200px){
-  .grid-4{grid-template-columns:repeat(2,1fr)}
-}
-@media(max-width:768px){
-  .grid-2,.grid-3,.grid-4{grid-template-columns:1fr}
-}
-
-/* STAT CARDS */
-.stat-card{
-  background:var(--surface);
-  border:1px solid var(--border);
-  border-radius:14px;
-  padding:20px;
-  box-shadow:var(--shadow);
-  transition:all .3s;
-  position:relative;
-  overflow:hidden;
-}
-
-.stat-card::before{
-  content:'';
-  position:absolute;top:-50%;right:-50%;
-  width:200px;height:200px;
-  background:linear-gradient(135deg,rgba(102,126,234,.1) 0%,rgba(118,75,162,.05) 100%);
-  border-radius:50%;
-  pointer-events:none;
-}
-
-.stat-card:hover{
-  box-shadow:var(--shadow-lg);
-  transform:translateY(-4px);
-}
-
-.stat-label{font-size:12px;color:var(--text2);margin-bottom:8px;font-weight:700;text-transform:uppercase;letter-spacing:.06em}
-.stat-value{font-size:32px;font-weight:800;line-height:1;background:var(--gradient-primary);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
-.stat-sub{font-size:12px;color:var(--text3);margin-top:6px;font-weight:600}
-
-.stat-icon{
-  position:absolute;
-  top:14px;right:14px;
-  font-size:28px;
-  opacity:.15;
-}
-
 /* FORM */
 .form-group{margin-bottom:16px}
-.form-label{
-  display:block;font-size:13px;font-weight:700;
-  color:var(--text);margin-bottom:7px;
-}
+.form-label{display:block;font-size:13px;font-weight:700;color:var(--text);margin-bottom:7px;}
 .form-label .req{color:var(--danger)}
-
-input[type=text],input[type=email],input[type=date],input[type=number],select,textarea{
-  width:100%;padding:10px 14px;
-  border:2px solid var(--border);border-radius:10px;
-  font-size:13px;font-family:inherit;
-  background:var(--surface);color:var(--text);
-  transition:all .3s;outline:none;
-}
-
-input:focus,select:focus,textarea:focus{
-  border-color:var(--primary);
-  box-shadow:0 0 0 4px rgba(102,126,234,.1);
-}
-
+input[type=text],input[type=email],input[type=date],input[type=number],select,textarea{width:100%;padding:10px 14px;border:2px solid var(--border);border-radius:10px;font-size:13px;font-family:inherit;background:var(--surface);color:var(--text);transition:all .3s;outline:none;}
+input:focus,select:focus,textarea:focus{border-color:var(--primary);box-shadow:0 0 0 4px rgba(102,126,234,.1)}
 textarea{resize:vertical;min-height:100px}
-
 .form-row{display:grid;gap:14px}
 .form-row.col2{grid-template-columns:1fr 1fr}
-.form-row.col3{grid-template-columns:1fr 1fr 1fr}
-
-@media(max-width:768px){
-  .form-row.col2,.form-row.col3{grid-template-columns:1fr}
-}
 
 /* BUTTONS */
-.btn{
-  display:inline-flex;align-items:center;gap:8px;
-  padding:10px 18px;border-radius:10px;
-  font-size:13px;font-weight:700;
-  cursor:pointer;border:none;transition:all .3s;
-  font-family:inherit;white-space:nowrap;
-  text-decoration:none;
-  box-shadow:var(--shadow);
-}
-
-.btn:hover{
-  transform:translateY(-2px);
-  box-shadow:var(--shadow-lg);
-}
-
-.btn-primary{
-  background:var(--gradient-primary);
-  color:#fff;
-}
-
-.btn-primary:hover{
-  filter:brightness(1.08);
-}
-
-.btn-secondary{
-  background:var(--surface);color:var(--text);
-  border:2px solid var(--border);
-}
-
-.btn-secondary:hover{
-  border-color:var(--primary);
-  color:var(--primary);
-}
-
-.btn-success{
-  background:var(--gradient-success);
-  color:#fff;
-}
-
-.btn-danger{
-  background:var(--gradient-warning);
-  color:#fff;
-}
-
+.btn{display:inline-flex;align-items:center;gap:8px;padding:10px 18px;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;border:none;transition:all .3s;font-family:inherit;white-space:nowrap;text-decoration:none;box-shadow:var(--shadow);}
+.btn:hover{transform:translateY(-2px);box-shadow:var(--shadow-lg)}
+.btn-primary{background:var(--gradient-primary);color:#fff}
+.btn-primary:hover{filter:brightness(1.08)}
+.btn-secondary{background:var(--surface);color:var(--text);border:2px solid var(--border)}
+.btn-secondary:hover{border-color:var(--primary);color:var(--primary)}
+.btn-success{background:var(--gradient-success);color:#fff}
+.btn-danger{background:var(--gradient-warning);color:#fff}
 .btn-small{padding:7px 12px;font-size:12px}
-.btn-icon{padding:8px;width:36px;height:36px;justify-content:center}
 
-/* ALERTS & TOAST */
-.toast{
-  position:fixed;bottom:24px;right:24px;
-  background:var(--surface);color:var(--text);
-  padding:14px 18px;border-radius:12px;
-  box-shadow:var(--shadow-lg);
-  z-index:999;
-  display:flex;align-items:center;gap:10px;
-  animation:slideInRight .3s ease-out;
-  max-width:350px;
-  border-left:4px solid var(--primary);
-}
-
-@keyframes slideInRight{
-  from{opacity:0;transform:translateX(30px)}
-  to{opacity:1;transform:translateX(0)}
-}
-
+/* TOAST */
+.toast{position:fixed;bottom:24px;right:24px;background:var(--surface);color:var(--text);padding:14px 18px;border-radius:12px;box-shadow:var(--shadow-lg);z-index:999;display:flex;align-items:center;gap:10px;animation:slideInRight .3s ease-out;max-width:350px;border-left:4px solid var(--primary);}
+@keyframes slideInRight{from{opacity:0;transform:translateX(30px)}to{opacity:1;transform:translateX(0)}}
 .toast.success{border-left-color:var(--success);background:linear-gradient(90deg,rgba(0,208,132,.05) 0%,transparent 100%)}
 .toast.danger{border-left-color:var(--danger);background:linear-gradient(90deg,rgba(255,107,107,.05) 0%,transparent 100%)}
-.toast.warn{border-left-color:var(--warn);background:linear-gradient(90deg,rgba(251,191,36,.05) 0%,transparent 100%)}
-
-/* BADGE */
-.badge{
-  display:inline-block;
-  padding:4px 10px;border-radius:8px;
-  font-size:11px;font-weight:700;
-  text-transform:uppercase;letter-spacing:.03em;
-}
-
-.badge-active{background:var(--success-bg);color:var(--success)}
-.badge-inactive{background:rgba(107,112,255,.1);color:var(--primary)}
-.badge-blue{background:var(--primary-light);color:var(--primary)}
-.badge-danger{background:var(--danger-bg);color:var(--danger)}
-.badge-warning{background:var(--warn-bg);color:var(--warn)}
-
-/* MODAL */
-.modal-overlay{
-  position:fixed;inset:0;background:rgba(0,0,0,.5);
-  z-index:200;display:none;align-items:center;justify-content:center;
-  backdrop-filter:blur(4px);
-}
-.modal-overlay.open{display:flex;animation:fadeIn .2s ease-out}
-
-.modal{
-  background:var(--surface);border-radius:16px;
-  box-shadow:var(--shadow-xl);
-  max-width:600px;width:90%;
-  max-height:90vh;overflow-y:auto;
-  animation:slideUp .3s ease-out;
-}
-
-.modal-header{
-  padding:24px;border-bottom:1px solid var(--border);
-  display:flex;align-items:center;justify-content:space-between;
-  gap:12px;
-}
-
-.modal-header h2{font-size:16px;font-weight:800;color:var(--text)}
-.modal-close{
-  width:32px;height:32px;
-  border:none;background:var(--surface2);color:var(--text);
-  border-radius:8px;cursor:pointer;
-  display:flex;align-items:center;justify-content:center;
-  transition:all .3s;
-}
-.modal-close:hover{background:var(--danger);color:#fff}
-
-.modal-body{padding:24px}
-.modal-footer{
-  padding:16px 24px;border-top:1px solid var(--border);
-  display:flex;gap:10px;justify-content:flex-end;
-}
 
 /* TABLE */
-table{
-  width:100%;border-collapse:collapse;
-  font-size:13px;
-}
-
+table{width:100%;border-collapse:collapse;font-size:13px}
 thead{background:var(--surface2)}
-th{
-  padding:12px 14px;text-align:left;
-  font-weight:700;color:var(--text);
-  border-bottom:2px solid var(--border);
-}
-
-td{
-  padding:12px 14px;
-  border-bottom:1px solid var(--border);
-  color:var(--text2);
-}
-
+th{padding:12px 14px;text-align:left;font-weight:700;color:var(--text);border-bottom:2px solid var(--border)}
+td{padding:12px 14px;border-bottom:1px solid var(--border);color:var(--text2)}
 tbody tr{transition:all .2s}
 tbody tr:hover{background:var(--surface2)}
 
-/* QUICK ACTIONS */
-.quick-actions{
-  display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));
-  gap:12px;
-  margin-bottom:24px;
-}
-
-.action-btn{
-  display:flex;flex-direction:column;align-items:center;
-  gap:8px;padding:14px;
-  background:linear-gradient(135deg,rgba(102,126,234,.1) 0%,rgba(118,75,162,.05) 100%);
-  border:2px solid var(--primary);
-  border-radius:12px;cursor:pointer;
-  transition:all .3s;text-align:center;
-  color:var(--primary);font-weight:600;font-size:12px;
-}
-
-.action-btn:hover{
-  background:linear-gradient(135deg,rgba(102,126,234,.2) 0%,rgba(118,75,162,.1) 100%);
-  border-color:var(--primary);
-  color:var(--primary);
-  transform:translateY(-2px);
-  box-shadow:var(--shadow-lg);
-}
-
-.action-icon{font-size:24px}
-
-/* DASHBOARD HIGHLIGHTS */
-.highlights{
-  display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
-  gap:20px;
-  margin-bottom:28px;
-}
-
-.highlight-card{
-  background:linear-gradient(135deg,var(--surface) 0%,var(--surface2) 100%);
-  border:2px solid var(--border);
-  border-radius:16px;
-  padding:20px;
-  position:relative;
-  overflow:hidden;
-  transition:all .3s;
-}
-
-.highlight-card:nth-child(1){
-  border-color:#667eea;
-  background:linear-gradient(135deg,rgba(102,126,234,.05) 0%,rgba(118,75,162,.03) 100%);
-}
-
-.highlight-card:nth-child(2){
-  border-color:#00d084;
-  background:linear-gradient(135deg,rgba(0,208,132,.05) 0%,rgba(12,206,107,.03) 100%);
-}
-
-.highlight-card:nth-child(3){
-  border-color:#fbbf24;
-  background:linear-gradient(135deg,rgba(251,191,36,.05) 0%,rgba(245,158,11,.03) 100%);
-}
-
-.highlight-card:hover{
-  box-shadow:var(--shadow-lg);
-  transform:translateY(-4px);
-}
-
-.highlight-card::after{
-  content:'';
-  position:absolute;bottom:0;right:0;
-  width:150px;height:150px;
-  background:radial-gradient(circle,rgba(102,126,234,.08) 0%,transparent 70%);
-  pointer-events:none;
-}
-
-.highlight-title{
-  font-size:13px;font-weight:700;
-  color:var(--text3);text-transform:uppercase;
-  letter-spacing:.05em;margin-bottom:8px;
-}
-
-.highlight-value{
-  font-size:28px;font-weight:800;
-  color:var(--text);margin-bottom:4px;
-}
-
-.highlight-desc{
-  font-size:12px;color:var(--text3);
-  line-height:1.4;
-}
-
-.highlight-icon{
-  position:absolute;top:14px;right:14px;
-  font-size:32px;opacity:.1;
-}
-
-/* ANIMATED BACKGROUND */
-.animated-bg{
-  position:relative;
-  background:var(--surface);
-}
-
-.animated-bg::before,
-.animated-bg::after{
-  content:'';
-  position:absolute;
-  border-radius:50%;
-  pointer-events:none;
-  opacity:.03;
-}
-
-.animated-bg::before{
-  top:-100px;right:-100px;
-  width:400px;height:400px;
-  background:var(--gradient-primary);
-}
-
-.animated-bg::after{
-  bottom:-100px;left:-100px;
-  width:400px;height:400px;
-  background:var(--gradient-success);
-}
+/* BADGE */
+.badge{display:inline-block;padding:4px 10px;border-radius:8px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.03em}
+.badge-active{background:var(--success-bg);color:var(--success)}
+.badge-warning{background:var(--warn-bg);color:var(--warn)}
+.badge-danger{background:var(--danger-bg);color:var(--danger)}
+.badge-blue{background:var(--primary-light);color:var(--primary)}
 
 /* UTILITIES */
 .text-center{text-align:center}
 .text-muted{color:var(--text3)}
-.mt-20{margin-top:20px}
-.mb-20{margin-bottom:20px}
-.mt-30{margin-top:30px}
-
-/* SCROLLBAR */
-::-webkit-scrollbar{width:8px;height:8px}
-::-webkit-scrollbar-track{background:transparent}
-::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}
-::-webkit-scrollbar-thumb:hover{background:var(--primary)}
 
 /* RESPONSIVE */
 @media(max-width:768px){
   .sidebar{width:56px}
   .sidebar.collapsed{width:56px}
   .main{margin-left:56px}
-  .main.expanded{margin-left:56px}
   .sidebar-brand-text{opacity:0;pointer-events:none}
   .grid-2,.grid-3,.grid-4{grid-template-columns:1fr}
   .topbar{padding:0 16px}
   .content{padding:16px}
-  .modal{width:95%}
 }
 
-/* ===== YANG SUDAH ADA ===== */
+::-webkit-scrollbar{width:8px;height:8px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}
+::-webkit-scrollbar-thumb:hover{background:var(--primary)}
 </style>
-<script src="https://www.gstatic.com/firebasejs/11.0.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/11.0.0/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
 
 <!-- AUTH SCREEN -->
-<div id="auth-screen" class="auth-screen">
+<div id="auth-demo" class="auth-demo">
   <div class="auth-card">
     <div class="auth-logo">🎯</div>
     <h1 class="auth-title">Plugin Transaksi</h1>
-    <p class="auth-sub">Kelola registrasi customer dengan mudah dan cepat</p>
-    <div id="auth-denied" class="auth-denied"></div>
-    <button class="google-btn" onclick="signInGoogle()">
-      <svg fill="#1f2937" viewBox="0 0 24 24">
-        <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-        <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-        <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-        <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-      </svg>
-      Login dengan Google
-    </button>
-    <div class="auth-loading" id="auth-loading">Sedang login...</div>
+    <p class="auth-sub">Login dengan Google</p>
+    <div class="auth-demo-btn">
+      <button class="demo-btn btn-demo-user" id="google-signin-btn" onclick="signInGoogle()">
+        🔐 Login dengan Google
+      </button>
+    </div>
+    <div id="auth-denied" style="display:none;background:#fee2e2;color:#991b1b;padding:12px;border-radius:8px;margin-top:15px;font-size:12px;border:1px solid #fecaca"></div>
+    <div id="auth-loading" style="display:none;text-align:center;padding:15px">
+      <div style="font-size:12px;color:#667eea;font-weight:600">⏳ Sedang login...</div>
+    </div>
   </div>
 </div>
 
-<!-- APP SHELL -->
+<!-- APP -->
 <div id="app" class="app-shell" style="display:none">
   
   <!-- SIDEBAR -->
@@ -713,44 +225,24 @@ tbody tr:hover{background:var(--surface2)}
       <div class="sidebar-brand-icon">🎯</div>
       <div class="sidebar-brand-text">
         <h1>Plugin TRX</h1>
-        <p>v3.0 Enhanced</p>
+        <p>v3.0 DEMO</p>
       </div>
     </div>
     <button class="sidebar-toggle" onclick="toggleSidebar()">◀</button>
     
     <nav style="flex:1;overflow-y:auto;padding:12px 0">
       <div class="nav-section-label">Menu Utama</div>
-      <div class="nav-item active" onclick="navigateTo('dashboard','Dashboard')">
+      <div class="nav-item active" onclick="showPage('dashboard','Dashboard')">
         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
         <span class="nav-label">Dashboard</span>
       </div>
-      <div class="nav-item" onclick="navigateTo('data','Data Registrasi')">
-        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/></svg>
+      <div class="nav-item" onclick="showPage('data','Data Registrasi')">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
         <span class="nav-label">Data Registrasi</span>
       </div>
-      <div class="nav-item" onclick="navigateTo('form','Tambah Data')">
+      <div class="nav-item" onclick="showPage('form','Tambah Data')">
         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 4v16m8-8H4"/></svg>
         <span class="nav-label">Tambah Data</span>
-      </div>
-
-      <div class="nav-section-label" style="margin-top:20px">Laporan</div>
-      <div class="nav-item" onclick="navigateTo('komisi','Rekap Komisi')">
-        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
-        <span class="nav-label">Rekap Komisi</span>
-      </div>
-      <div class="nav-item" onclick="navigateTo('history','Riwayat Update')">
-        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-        <span class="nav-label">Riwayat Update</span>
-      </div>
-
-      <div class="nav-section-label" style="margin-top:20px">Info</div>
-      <div class="nav-item" onclick="navigateTo('sysinfo','Informasi Sistem')">
-        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-        <span class="nav-label">Informasi Sistem</span>
-      </div>
-      <div class="nav-item" onclick="navigateTo('guide','Panduan Penggunaan')">
-        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-        <span class="nav-label">Panduan</span>
       </div>
     </nav>
 
@@ -759,24 +251,23 @@ tbody tr:hover{background:var(--surface2)}
         <div class="user-avatar" id="user-avatar">U</div>
         <div class="user-info">
           <div class="user-name" id="user-name">User</div>
-          <div class="user-email" id="user-email">email@app.com</div>
+          <div class="user-email" id="user-email">demo@app.com</div>
         </div>
       </div>
-      <button class="btn btn-secondary btn-icon" style="width:100%;margin-top:10px;justify-content:center" onclick="signOutGoogle()">
-        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width:16px;height:16px"><path d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
-        Keluar
+      <button class="btn btn-secondary" style="width:100%;margin-top:10px;justify-content:center;font-size:12px" onclick="logout()">
+        🚪 Keluar
       </button>
     </div>
   </div>
 
-  <!-- MAIN CONTENT -->
+  <!-- MAIN -->
   <div class="main" id="main">
     <!-- TOPBAR -->
     <div class="topbar">
       <div class="topbar-left">
         <div>
           <div class="topbar-title" id="page-title">Dashboard</div>
-          <div class="topbar-sub" id="page-sub">Selamat datang kembali</div>
+          <div class="topbar-sub" id="page-sub">Selamat datang di Demo Version</div>
         </div>
       </div>
       <div class="topbar-right">
@@ -787,107 +278,82 @@ tbody tr:hover{background:var(--surface2)}
     <!-- CONTENT -->
     <div class="content">
 
-      <!-- PAGE: DASHBOARD -->
+      <!-- DASHBOARD -->
       <div id="page-dashboard" class="page active">
-        
-        <!-- QUICK ACTIONS -->
-        <div class="quick-actions">
-          <div class="action-btn" onclick="showPage('form','Tambah Data')">
-            <div class="action-icon">➕</div>
-            <div>Tambah Registrasi</div>
+        <div class="grid-3">
+          <div class="stat-card">
+            <div class="stat-icon">📊</div>
+            <div class="stat-label">Total Registrasi</div>
+            <div class="stat-value" id="stat-total">0</div>
+            <div class="stat-sub">Data terdaftar</div>
           </div>
-          <div class="action-btn" onclick="openModal('modal-add-user')">
-            <div class="action-icon">👤</div>
-            <div>Kelola User</div>
+          <div class="stat-card">
+            <div class="stat-icon">✅</div>
+            <div class="stat-label">Status Aktif</div>
+            <div class="stat-value" id="stat-active">0</div>
+            <div class="stat-sub">Masih berlaku</div>
           </div>
-          <div class="action-btn" onclick="exportCSV()">
-            <div class="action-icon">📥</div>
-            <div>Export CSV</div>
-          </div>
-          <div class="action-btn" onclick="document.getElementById('btn-import-excel').click()">
-            <div class="action-icon">📤</div>
-            <div>Import Excel</div>
-          </div>
-        </div>
-
-        <!-- HIGHLIGHTS -->
-        <div class="highlights">
-          <div class="highlight-card">
-            <div class="highlight-icon">📊</div>
-            <div class="highlight-title">Total Registrasi</div>
-            <div class="highlight-value" id="stat-total">0</div>
-            <div class="highlight-desc">Semua data registrasi terdaftar</div>
-          </div>
-          <div class="highlight-card">
-            <div class="highlight-icon">✅</div>
-            <div class="highlight-title">Status Aktif</div>
-            <div class="highlight-value" id="stat-active">0</div>
-            <div class="highlight-desc">Registrasi masih berlaku</div>
-          </div>
-          <div class="highlight-card">
-            <div class="highlight-icon">⏰</div>
-            <div class="highlight-title">Akan Expired</div>
-            <div class="highlight-value" id="stat-expiring">0</div>
-            <div class="highlight-desc">30 hari ke depan</div>
+          <div class="stat-card">
+            <div class="stat-icon">⏰</div>
+            <div class="stat-label">Akan Expired</div>
+            <div class="stat-value" id="stat-expiring">0</div>
+            <div class="stat-sub">30 hari ke depan</div>
           </div>
         </div>
 
-        <!-- STATISTIK PAKET -->
-        <div class="card animated-bg">
-          <div class="card-header">
-            <h2>📦 Distribusi Paket Plugin</h2>
-          </div>
-          <div class="card-body">
-            <div id="stat-paket-list" style="display:grid;gap:12px">
-              <div style="text-align:center;color:var(--text3)">Memuat data...</div>
-            </div>
-          </div>
-        </div>
-
-        <!-- UPCOMING EXPIRY -->
         <div class="card">
           <div class="card-header">
-            <h2>🔔 Registrasi yang akan Expired</h2>
+            <h2>📝 Demo Features</h2>
           </div>
-          <div class="card-body">
-            <div id="upcoming-expiry" style="display:grid;gap:10px">
-              <div style="text-align:center;color:var(--text3);padding:20px">Tidak ada data</div>
-            </div>
+          <div class="card-body" style="line-height:1.8;color:var(--text2)">
+            <p style="margin-bottom:15px"><strong>✅ Fitur yang Berfungsi di Demo:</strong></p>
+            <ul style="margin-left:20px;margin-bottom:20px;color:var(--text2)">
+              <li style="margin-bottom:8px">✓ Tambah, Edit, Hapus Registrasi</li>
+              <li style="margin-bottom:8px">✓ Search dan Filter Data</li>
+              <li style="margin-bottom:8px">✓ Status Tracking (Aktif/Kadaluarsa)</li>
+              <li style="margin-bottom:8px">✓ Export CSV</li>
+              <li style="margin-bottom:8px">✓ Dashboard dengan Statistik</li>
+              <li style="margin-bottom:8px">✓ Dark Mode</li>
+            </ul>
+
+            <p style="margin-bottom:15px"><strong>⚠️ Keterbatasan Demo Version:</strong></p>
+            <ul style="margin-left:20px;color:var(--text2)">
+              <li style="margin-bottom:8px">• Data disimpan di localStorage (temp, bukan permanent)</li>
+              <li style="margin-bottom:8px">• Tidak ada login Google real</li>
+              <li style="margin-bottom:8px">• Tidak ada role-based access control</li>
+              <li style="margin-bottom:8px">• Tidak ada import Excel</li>
+            </ul>
+
+            <p style="margin-top:20px;padding:12px;background:var(--primary-light);border-radius:8px;font-weight:600;color:var(--primary)">
+              💡 Untuk versi production dengan Firebase, gunakan file <strong>index-enhanced.html</strong> dan setup Firebase config Anda.
+            </p>
           </div>
         </div>
       </div>
 
-      <!-- PAGE: DATA REGISTRASI -->
+      <!-- DATA -->
       <div id="page-data" class="page">
         <div class="card">
           <div class="card-header">
-            <h2>📋 Daftar Registrasi</h2>
-            <div style="display:flex;gap:8px;flex-wrap:wrap">
-              <input type="text" id="search-input" placeholder="🔍 Cari..." style="flex:1;min-width:200px;padding:8px 12px;border:2px solid var(--border);border-radius:8px;font-size:13px">
-              <select id="status-filter" style="padding:8px 12px;border:2px solid var(--border);border-radius:8px;font-size:13px">
-                <option value="">Semua Status</option>
-                <option value="aktif">Aktif</option>
-                <option value="kadaluarsa">Kadaluarsa</option>
-              </select>
-            </div>
+            <h2>📋 Data Registrasi</h2>
+            <input type="text" id="search" placeholder="🔍 Cari..." style="flex:1;min-width:200px;padding:8px 12px;border:2px solid var(--border);border-radius:8px;font-size:13px" onkeyup="updateTable()">
           </div>
           <div class="card-body">
             <div style="overflow-x:auto">
-              <table id="data-table">
+              <table id="table">
                 <thead>
                   <tr>
-                    <th style="width:5%">No</th>
-                    <th style="width:15%">Perusahaan</th>
-                    <th style="width:12%">Invoice</th>
-                    <th style="width:15%">Paket</th>
-                    <th style="width:12%">Tgl Aktif</th>
-                    <th style="width:12%">Tgl Expired</th>
-                    <th style="width:10%">Status</th>
-                    <th style="width:19%">Aksi</th>
+                    <th>No</th>
+                    <th>Perusahaan</th>
+                    <th>Invoice</th>
+                    <th>Paket</th>
+                    <th>Expired</th>
+                    <th>Status</th>
+                    <th>Aksi</th>
                   </tr>
                 </thead>
-                <tbody id="table-body">
-                  <tr><td colspan="8" style="text-align:center;color:var(--text3);padding:30px">Tidak ada data</td></tr>
+                <tbody id="tbody">
+                  <tr><td colspan="7" style="text-align:center;color:var(--text3);padding:30px">Tidak ada data</td></tr>
                 </tbody>
               </table>
             </div>
@@ -895,29 +361,29 @@ tbody tr:hover{background:var(--surface2)}
         </div>
       </div>
 
-      <!-- PAGE: FORM TAMBAH DATA -->
+      <!-- FORM -->
       <div id="page-form" class="page">
         <div class="card">
           <div class="card-header">
-            <h2>📝 Tambah Registrasi Baru</h2>
+            <h2>📝 Tambah Registrasi</h2>
           </div>
           <div class="card-body">
-            <form id="form-registrasi" onsubmit="submitForm(event)">
-              <div class="grid-2">
+            <form id="form" onsubmit="submitForm(event)">
+              <div class="form-row col2">
                 <div class="form-group">
                   <label class="form-label">Nama Perusahaan <span class="req">*</span></label>
-                  <input type="text" id="form-nama" required>
+                  <input type="text" id="nama" required>
                 </div>
                 <div class="form-group">
                   <label class="form-label">Invoice <span class="req">*</span></label>
-                  <input type="text" id="form-invoice" required>
+                  <input type="text" id="invoice" required>
                 </div>
               </div>
 
-              <div class="grid-2">
+              <div class="form-row col2">
                 <div class="form-group">
-                  <label class="form-label">Paket Plugin <span class="req">*</span></label>
-                  <select id="form-paket" required>
+                  <label class="form-label">Paket <span class="req">*</span></label>
+                  <select id="paket" required>
                     <option value="">Pilih Paket</option>
                     <option value="Starter">Starter</option>
                     <option value="Professional">Professional</option>
@@ -925,479 +391,27 @@ tbody tr:hover{background:var(--surface2)}
                   </select>
                 </div>
                 <div class="form-group">
-                  <label class="form-label">Tipe Registrasi <span class="req">*</span></label>
-                  <select id="form-tipe" required>
-                    <option value="">Pilih Tipe</option>
-                    <option value="Komersial">Komersial</option>
-                    <option value="Internal">Internal</option>
-                    <option value="Trial">Trial</option>
-                  </select>
-                </div>
-              </div>
-
-              <div class="grid-2">
-                <div class="form-group">
                   <label class="form-label">Tgl Registrasi <span class="req">*</span></label>
-                  <input type="date" id="form-tglReg" required>
-                </div>
-                <div class="form-group">
-                  <label class="form-label">Tgl Aktif Hingga <span class="req">*</span></label>
-                  <input type="date" id="form-tglAktif" required>
+                  <input type="date" id="tglReg" required>
                 </div>
               </div>
 
               <div class="form-group">
+                <label class="form-label">Tgl Aktif Hingga <span class="req">*</span></label>
+                <input type="date" id="tglAktif" required>
+              </div>
+
+              <div class="form-group">
                 <label class="form-label">Catatan</label>
-                <textarea id="form-catatan" placeholder="Tambahkan catatan penting..."></textarea>
+                <textarea id="catatan" placeholder="Catatan penting..."></textarea>
               </div>
 
               <div style="display:flex;gap:10px;margin-top:20px">
-                <button type="submit" class="btn btn-primary">
-                  <span>✅</span> Simpan Data
-                </button>
-                <button type="button" class="btn btn-secondary" onclick="resetForm()">
-                  <span>↻</span> Reset
-                </button>
+                <button type="submit" class="btn btn-primary">✅ Simpan</button>
+                <button type="button" class="btn btn-secondary" onclick="resetForm()">↻ Reset</button>
               </div>
             </form>
           </div>
-        </div>
-      </div>
-
-      <!-- PAGE: KOMISI -->
-      <div id="page-komisi" class="page">
-        <div class="card">
-          <div class="card-header">
-            <h2>💰 Rekap Komisi</h2>
-            <button class="btn btn-primary btn-small" onclick="printKomisi()">
-              <span>🖨️</span> Cetak
-            </button>
-          </div>
-          <div class="card-body">
-            <div style="overflow-x:auto">
-              <table id="komisi-table">
-                <thead>
-                  <tr>
-                    <th>No</th>
-                    <th>Tanggal</th>
-                    <th>Invoice</th>
-                    <th>Perusahaan</th>
-                    <th>Paket</th>
-                    <th>Keterangan</th>
-                  </tr>
-                </thead>
-                <tbody id="komisi-tbody">
-                  <tr><td colspan="6" style="text-align:center;color:var(--text3);padding:30px">Memuat data...</td></tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- PAGE: HISTORY -->
-      <div id="page-history" class="page">
-        <!-- SUMMARY CARD -->
-        <div class="card">
-          <div class="card-header">
-            <h2>📊 Ringkasan Data</h2>
-          </div>
-          <div class="card-body">
-            <div class="grid-3">
-              <div style="padding:12px;background:var(--success-bg);border-radius:8px;text-align:center">
-                <div style="font-size:24px;font-weight:800;color:var(--success)" id="hist-aktif">0</div>
-                <div style="font-size:12px;color:var(--text);font-weight:600">✅ AKTIF</div>
-              </div>
-              <div style="padding:12px;background:var(--warn-bg);border-radius:8px;text-align:center">
-                <div style="font-size:24px;font-weight:800;color:var(--warn)" id="hist-expiring">0</div>
-                <div style="font-size:12px;color:var(--text);font-weight:600">⏰ AKAN EXPIRED</div>
-              </div>
-              <div style="padding:12px;background:var(--danger-bg);border-radius:8px;text-align:center">
-                <div style="font-size:24px;font-weight:800;color:var(--danger)" id="hist-expired">0</div>
-                <div style="font-size:12px;color:var(--text);font-weight:600">❌ EXPIRED</div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- REGISTRASI YANG SUDAH EXPIRED -->
-        <div class="card">
-          <div class="card-header">
-            <h2>❌ Registrasi Sudah Expired</h2>
-          </div>
-          <div class="card-body">
-            <div id="history-expired" style="display:grid;gap:10px">
-              <div style="text-align:center;color:var(--text3);padding:20px">Tidak ada registrasi yang expired</div>
-            </div>
-          </div>
-        </div>
-
-        <!-- REGISTRASI YANG AKAN EXPIRED -->
-        <div class="card">
-          <div class="card-header">
-            <h2>⏰ Registrasi Akan Expired (30 hari)</h2>
-          </div>
-          <div class="card-body">
-            <div id="history-expiring" style="display:grid;gap:10px">
-              <div style="text-align:center;color:var(--text3);padding:20px">Tidak ada registrasi yang akan expired</div>
-            </div>
-          </div>
-        </div>
-
-        <!-- REGISTRASI YANG MASIH AKTIF -->
-        <div class="card">
-          <div class="card-header">
-            <h2>✅ Registrasi Masih Aktif</h2>
-          </div>
-          <div class="card-body">
-            <div id="history-aktif" style="display:grid;gap:10px">
-              <div style="text-align:center;color:var(--text3);padding:20px">Tidak ada registrasi yang aktif</div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- PAGE: SYS INFO -->
-      <div id="page-sysinfo" class="page">
-        <div class="grid-2">
-          <div class="card">
-            <div class="card-header">
-              <h2>ℹ️ Informasi Sistem</h2>
-            </div>
-            <div class="card-body">
-              <div id="sys-info" style="line-height:1.8;font-size:13px">Memuat...</div>
-            </div>
-          </div>
-          <div class="card">
-            <div class="card-header">
-              <h2>📤 Import/Export Data</h2>
-            </div>
-            <div class="card-body">
-              <input type="file" id="btn-import-excel" accept=".xlsx,.xls,.csv" style="display:none" onchange="importExcel(event)">
-              <div style="display:grid;gap:10px">
-                <button class="btn btn-primary" id="btn-import-excel-btn" onclick="document.getElementById('btn-import-excel').click()" style="width:100%">
-                  <span>📥</span> Import Excel/CSV
-                </button>
-                <button class="btn btn-secondary" id="btn-export-csv" onclick="exportCSV()" style="width:100%">
-                  <span>📤</span> Export ke CSV
-                </button>
-                <div id="import-note-nonadmin" style="background:var(--warn-bg);border-left:4px solid var(--warn);padding:12px;border-radius:8px;font-size:12px;color:var(--warn);display:none;font-weight:600">
-                  ⚠️ Hanya admin yang dapat import data. Hubungi administrator.
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- PAGE: GUIDE -->
-      <div id="page-guide" class="page">
-        <div style="display:grid;gap:20px">
-
-          <!-- QUICK START -->
-          <div class="card animated-bg">
-            <div class="card-header">
-              <h2>🚀 Quick Start</h2>
-            </div>
-            <div class="card-body">
-              <div style="display:grid;gap:12px;line-height:1.8;color:var(--text2);font-size:13px">
-                <div style="padding:12px;background:var(--primary-light);border-left:4px solid var(--primary);border-radius:8px">
-                  <strong style="color:var(--text)">1️⃣ Login</strong><br>
-                  Gunakan Google untuk login ke aplikasi. Hanya pengguna yang terdaftar yang dapat mengakses.
-                </div>
-                <div style="padding:12px;background:var(--success-bg);border-left:4px solid var(--success);border-radius:8px">
-                  <strong style="color:var(--text)">2️⃣ Dashboard</strong><br>
-                  Lihat statistik real-time, quick actions, dan upcoming expiry di halaman utama.
-                </div>
-                <div style="padding:12px;background:var(--warn-bg);border-left:4px solid var(--warn);border-radius:8px">
-                  <strong style="color:var(--text)">3️⃣ Tambah/Kelola Data</strong><br>
-                  Gunakan menu untuk tambah registrasi baru atau edit data yang sudah ada.
-                </div>
-                <div style="padding:12px;background:rgba(79,172,254,.1);border-left:4px solid #4facfe;border-radius:8px">
-                  <strong style="color:var(--text)">4️⃣ Export/Import</strong><br>
-                  Kelola data dalam format CSV atau Excel untuk backup dan sharing.
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- DASHBOARD FEATURES -->
-          <div class="card">
-            <div class="card-header">
-              <h2>📊 Dashboard - Halaman Utama</h2>
-            </div>
-            <div class="card-body" style="line-height:1.8;color:var(--text2);font-size:13px">
-              <h3 style="margin:0 0 15px;color:var(--text);font-weight:700">⚡ Quick Actions</h3>
-              <p style="margin-bottom:15px">Empat tombol pintas di bagian atas dashboard untuk akses cepat:</p>
-              <div style="display:grid;gap:10px;margin-bottom:20px">
-                <div style="padding:10px;background:var(--surface2);border-radius:8px">
-                  <strong style="color:var(--primary)">➕ Tambah Registrasi</strong> - Langsung ke form input data baru
-                </div>
-                <div style="padding:10px;background:var(--surface2);border-radius:8px">
-                  <strong style="color:var(--primary)">👤 Kelola User</strong> - Buka modal untuk manajemen user (admin saja)
-                </div>
-                <div style="padding:10px;background:var(--surface2);border-radius:8px">
-                  <strong style="color:var(--primary)">📥 Export CSV</strong> - Download semua data dalam format CSV
-                </div>
-                <div style="padding:10px;background:var(--surface2);border-radius:8px">
-                  <strong style="color:var(--primary)">📤 Import Excel</strong> - Upload data dari file Excel/CSV (admin saja)
-                </div>
-              </div>
-
-              <h3 style="margin:20px 0 15px;color:var(--text);font-weight:700">📈 Highlight Cards</h3>
-              <p style="margin-bottom:10px">Tiga kartu statistik penting menampilkan:</p>
-              <div style="display:grid;gap:10px">
-                <div style="padding:10px;background:var(--surface2);border-radius:8px">
-                  <strong>📊 Total Registrasi</strong> - Jumlah keseluruhan data yang terdaftar dalam sistem
-                </div>
-                <div style="padding:10px;background:var(--surface2);border-radius:8px">
-                  <strong>✅ Status Aktif</strong> - Berapa banyak registrasi yang masih berlaku sampai sekarang
-                </div>
-                <div style="padding:10px;background:var(--surface2);border-radius:8px">
-                  <strong>⏰ Akan Expired</strong> - Registrasi yang akan kadaluarsa dalam 30 hari ke depan
-                </div>
-              </div>
-
-              <h3 style="margin:20px 0 15px;color:var(--text);font-weight:700">📦 Distribusi Paket</h3>
-              <p style="margin-bottom:10px">Breakdown visual dari setiap paket plugin yang digunakan:</p>
-              <p style="color:var(--text3)">Menampilkan total registrasi per paket: Starter, Professional, dan Enterprise. Update otomatis saat data berubah.</p>
-
-              <h3 style="margin:20px 0 15px;color:var(--text);font-weight:700">🔔 Upcoming Expiry</h3>
-              <p style="margin-bottom:10px">Fitur smart alert untuk registrasi yang akan expired:</p>
-              <div style="padding:12px;background:var(--warn-bg);border-radius:8px;margin-bottom:10px">
-                ⚠️ Menampilkan maksimal 5 registrasi paling urgent yang akan expired dalam 30 hari
-              </div>
-              <p style="color:var(--text3)">Setiap kartu menunjukkan nama perusahaan, tanggal expired, dan sisa hari dalam format countdown. Klik untuk edit.</p>
-            </div>
-          </div>
-
-          <!-- DATA REGISTRASI -->
-          <div class="card">
-            <div class="card-header">
-              <h2>📋 Data Registrasi</h2>
-            </div>
-            <div class="card-body" style="line-height:1.8;color:var(--text2);font-size:13px">
-              <h3 style="margin:0 0 15px;color:var(--text);font-weight:700">Searching & Filtering</h3>
-              <p style="margin-bottom:15px">Di bagian atas tabel tersedia:</p>
-              <div style="display:grid;gap:10px;margin-bottom:20px">
-                <div style="padding:10px;background:var(--surface2);border-radius:8px">
-                  <strong>🔍 Search Box</strong> - Ketik untuk cari berdasarkan nama perusahaan, invoice, atau paket
-                </div>
-                <div style="padding:10px;background:var(--surface2);border-radius:8px">
-                  <strong>Filter Status</strong> - Pilih "Aktif" atau "Kadaluarsa" untuk filter berdasarkan status
-                </div>
-              </div>
-
-              <h3 style="margin:20px 0 15px;color:var(--text);font-weight:700">Status Badges</h3>
-              <p style="margin-bottom:10px">Setiap registrasi memiliki status badge dengan warna berbeda:</p>
-              <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:15px">
-                <div style="padding:6px 12px;background:var(--success-bg);border-radius:6px;font-weight:600">
-                  <span style="color:var(--success)">✅ Aktif</span>
-                </div>
-                <div style="padding:6px 12px;background:var(--warn-bg);border-radius:6px;font-weight:600">
-                  <span style="color:var(--warn)">⏰ Akan Expired</span>
-                </div>
-                <div style="padding:6px 12px;background:var(--danger-bg);border-radius:6px;font-weight:600">
-                  <span style="color:var(--danger)">❌ Kadaluarsa</span>
-                </div>
-              </div>
-
-              <h3 style="margin:20px 0 15px;color:var(--text);font-weight:700">Action Buttons</h3>
-              <p style="margin-bottom:10px">Setiap row memiliki 2 tombol action:</p>
-              <div style="display:grid;gap:10px">
-                <div style="padding:10px;background:var(--surface2);border-radius:8px">
-                  <strong>✏️ Edit</strong> - Buka form untuk mengedit data registrasi yang dipilih
-                </div>
-                <div style="padding:10px;background:var(--surface2);border-radius:8px">
-                  <strong>🗑️ Hapus</strong> - Hapus data registrasi (confirm terlebih dahulu)
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- FORM INPUT -->
-          <div class="card">
-            <div class="card-header">
-              <h2>📝 Tambah/Edit Registrasi</h2>
-            </div>
-            <div class="card-body" style="line-height:1.8;color:var(--text2);font-size:13px">
-              <h3 style="margin:0 0 15px;color:var(--text);font-weight:700">Field-Field yang Harus Diisi</h3>
-              <div style="display:grid;gap:12px;margin-bottom:20px">
-                <div style="padding:10px;background:var(--surface2);border-radius:8px">
-                  <strong style="color:var(--text)">Nama Perusahaan <span style="color:var(--danger)">*</span></strong><br>
-                  <span style="font-size:12px">Nama lengkap perusahaan customer</span>
-                </div>
-                <div style="padding:10px;background:var(--surface2);border-radius:8px">
-                  <strong style="color:var(--text)">Invoice <span style="color:var(--danger)">*</span></strong><br>
-                  <span style="font-size:12px">Nomor invoice atau reference number</span>
-                </div>
-                <div style="padding:10px;background:var(--surface2);border-radius:8px">
-                  <strong style="color:var(--text)">Paket Plugin <span style="color:var(--danger)">*</span></strong><br>
-                  <span style="font-size:12px">Pilih: Starter, Professional, atau Enterprise</span>
-                </div>
-                <div style="padding:10px;background:var(--surface2);border-radius:8px">
-                  <strong style="color:var(--text)">Tipe Registrasi <span style="color:var(--danger)">*</span></strong><br>
-                  <span style="font-size:12px">Pilih: Komersial, Internal, atau Trial</span>
-                </div>
-                <div style="padding:10px;background:var(--surface2);border-radius:8px">
-                  <strong style="color:var(--text)">Tgl Registrasi <span style="color:var(--danger)">*</span></strong><br>
-                  <span style="font-size:12px">Tanggal saat registrasi dilakukan</span>
-                </div>
-                <div style="padding:10px;background:var(--surface2);border-radius:8px">
-                  <strong style="color:var(--text)">Tgl Aktif Hingga <span style="color:var(--danger)">*</span></strong><br>
-                  <span style="font-size:12px">Tanggal registrasi akan kadaluarsa</span>
-                </div>
-                <div style="padding:10px;background:var(--surface2);border-radius:8px">
-                  <strong style="color:var(--text)">Catatan</strong><br>
-                  <span style="font-size:12px">Keterangan tambahan atau notes penting (opsional)</span>
-                </div>
-              </div>
-
-              <h3 style="margin:20px 0 15px;color:var(--text);font-weight:700">Tips Penggunaan</h3>
-              <div style="padding:12px;background:var(--primary-light);border-left:4px solid var(--primary);border-radius:8px">
-                <p style="margin:0 0 8px;font-weight:600;color:var(--text)">💡 Tips Mengisi Form:</p>
-                <ul style="margin:0;padding-left:20px;color:var(--text2)">
-                  <li style="margin-bottom:4px">Field dengan * (bintang merah) harus diisi</li>
-                  <li style="margin-bottom:4px">Fokus pada input akan menampilkan highlight biru</li>
-                  <li style="margin-bottom:4px">Gunakan tombol "Reset" untuk membersihkan form</li>
-                  <li>Klik "Simpan Data" setelah mengisi semua field</li>
-                </ul>
-              </div>
-            </div>
-          </div>
-
-          <!-- LAPORAN -->
-          <div class="card">
-            <div class="card-header">
-              <h2>💰 Rekap Komisi & Laporan</h2>
-            </div>
-            <div class="card-body" style="line-height:1.8;color:var(--text2);font-size:13px">
-              <h3 style="margin:0 0 15px;color:var(--text);font-weight:700">Rekap Komisi</h3>
-              <p style="margin-bottom:15px">Menampilkan ringkasan komisi dari semua registrasi dalam bentuk tabel yang rapi. Gunakan tombol <strong>Cetak</strong> untuk mencetak laporan ke printer atau PDF.</p>
-
-              <h3 style="margin:20px 0 15px;color:var(--text);font-weight:700">Riwayat Update</h3>
-              <p style="margin-bottom:15px">Lihat log semua perubahan data dan aktivitas pengguna. Berguna untuk audit trail dan tracking perubahan historis.</p>
-
-              <h3 style="margin:20px 0 15px;color:var(--text);font-weight:700">Export/Import</h3>
-              <div style="display:grid;gap:10px">
-                <div style="padding:10px;background:var(--surface2);border-radius:8px">
-                  <strong>📥 Export CSV</strong> - Download semua data dalam format CSV yang bisa dibuka di Excel
-                </div>
-                <div style="padding:10px;background:var(--surface2);border-radius:8px">
-                  <strong>📤 Import Excel</strong> - Upload data dari file Excel/CSV (hanya untuk admin)
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- PENGATURAN -->
-          <div class="card">
-            <div class="card-header">
-              <h2>⚙️ Pengaturan & Fitur Lainnya</h2>
-            </div>
-            <div class="card-body" style="line-height:1.8;color:var(--text2);font-size:13px">
-              <h3 style="margin:0 0 15px;color:var(--text);font-weight:700">🌙 Dark Mode</h3>
-              <p style="margin-bottom:15px">Klik tombol moon/sun di top-right untuk toggle antara light dan dark mode. Preferensi disimpan otomatis.</p>
-
-              <h3 style="margin:20px 0 15px;color:var(--text);font-weight:700">📱 Responsive Design</h3>
-              <p style="margin-bottom:15px">Aplikasi bekerja sempurna di semua ukuran layar: desktop, tablet, dan mobile. Layout otomatis menyesuaikan.</p>
-
-              <h3 style="margin:20px 0 15px;color:var(--text);font-weight:700">🔐 Keamanan</h3>
-              <div style="display:grid;gap:10px">
-                <div style="padding:10px;background:var(--surface2);border-radius:8px">
-                  <strong>Role-Based Access</strong> - Admin dan User memiliki akses berbeda
-                </div>
-                <div style="padding:10px;background:var(--surface2);border-radius:8px">
-                  <strong>Google Authentication</strong> - Login aman dengan akun Google
-                </div>
-                <div style="padding:10px;background:var(--surface2);border-radius:8px">
-                  <strong>Firebase Security</strong> - Data terenkripsi dalam transit
-                </div>
-              </div>
-
-              <h3 style="margin:20px 0 15px;color:var(--text);font-weight:700">📊 Informasi Sistem</h3>
-              <p style="margin-bottom:10px">Menu "Informasi Sistem" menampilkan:</p>
-              <div style="display:grid;gap:8px">
-                <span>• Project ID</span>
-                <span>• User yang login sekarang</span>
-                <span>• Email user</span>
-                <span>• Role (Admin/User)</span>
-                <span>• Total data registrasi</span>
-                <span>• Versi aplikasi</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- KEYBOARD SHORTCUTS -->
-          <div class="card">
-            <div class="card-header">
-              <h2>⌨️ Keyboard Shortcuts</h2>
-            </div>
-            <div class="card-body" style="line-height:1.8;color:var(--text2);font-size:13px">
-              <div style="display:grid;gap:10px">
-                <div style="padding:10px;background:var(--surface2);border-radius:8px;display:flex;justify-content:space-between">
-                  <strong>ESC</strong>
-                  <span>Tutup modal/dialog yang terbuka</span>
-                </div>
-                <div style="padding:10px;background:var(--surface2);border-radius:8px;display:flex;justify-content:space-between">
-                  <strong>Tab</strong>
-                  <span>Navigasi antar field dalam form</span>
-                </div>
-                <div style="padding:10px;background:var(--surface2);border-radius:8px;display:flex;justify-content:space-between">
-                  <strong>Enter</strong>
-                  <span>Submit form atau konfirmasi action</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- FAQ -->
-          <div class="card">
-            <div class="card-header">
-              <h2>❓ FAQ - Pertanyaan Umum</h2>
-            </div>
-            <div class="card-body" style="line-height:1.8;color:var(--text2);font-size:13px">
-              <h3 style="margin:0 0 10px;color:var(--text);font-weight:700">Q: Bagaimana cara menghapus data?</h3>
-              <p style="margin-bottom:20px">A: Klik tombol "Hapus" di baris data, sistem akan meminta konfirmasi sebelum menghapus.</p>
-
-              <h3 style="margin:0 0 10px;color:var(--text);font-weight:700">Q: Bagaimana cara export data?</h3>
-              <p style="margin-bottom:20px">A: Klik tombol "Export CSV" di quick actions atau menu Informasi Sistem untuk download data.</p>
-
-              <h3 style="margin:0 0 10px;color:var(--text);font-weight:700">Q: Siapa yang bisa import data?</h3>
-              <p style="margin-bottom:20px">A: Hanya admin yang memiliki akses untuk import data dari Excel/CSV.</p>
-
-              <h3 style="margin:0 0 10px;color:var(--text);font-weight:700">Q: Bagaimana jika lupa password?</h3>
-              <p style="margin-bottom:20px">A: Gunakan fitur "Forgot Password" di Google atau hubungi administrator sistem.</p>
-
-              <h3 style="margin:0 0 10px;color:var(--text);font-weight:700">Q: Berapa lama data disimpan?</h3>
-              <p style="margin-bottom:20px">A: Data disimpan di Firebase cloud secara permanent sampai dihapus manual.</p>
-
-              <h3 style="margin:0 0 10px;color:var(--text);font-weight:700">Q: Bisa backup data?</h3>
-              <p>A: Ya, gunakan fitur "Export CSV" untuk membuat backup data secara berkala.</p>
-            </div>
-          </div>
-
-          <!-- SUPPORT -->
-          <div class="card" style="background:linear-gradient(135deg,rgba(102,126,234,.05) 0%,rgba(118,75,162,.05) 100%)">
-            <div class="card-header">
-              <h2>📧 Bantuan & Dukungan</h2>
-            </div>
-            <div class="card-body" style="line-height:1.8;color:var(--text2);font-size:13px">
-              <p style="margin-bottom:15px">Jika mengalami kendala atau memiliki pertanyaan tentang penggunaan aplikasi:</p>
-              <div style="padding:12px;background:var(--surface);border-radius:8px;margin-bottom:15px">
-                <strong style="color:var(--text)">📧 Email Support:</strong><br>
-                <span style="color:var(--primary);font-family:monospace">datazahir@gmail.com</span>
-              </div>
-              <p style="margin-bottom:10px;font-weight:600;color:var(--text)">Sertakan dalam email:</p>
-              <ul style="margin:0;padding-left:20px">
-                <li style="margin-bottom:5px">Deskripsi masalah yang dihadapi</li>
-                <li style="margin-bottom:5px">Screenshot (jika diperlukan)</li>
-                <li style="margin-bottom:5px">Langkah-langkah untuk reproduce masalah</li>
-                <li>Browser dan versi yang digunakan</li>
-              </ul>
-            </div>
-          </div>
-
         </div>
       </div>
 
@@ -1405,19 +419,12 @@ tbody tr:hover{background:var(--surface2)}
   </div>
 </div>
 
-<!-- LOADING OVERLAY -->
-<div id="loading-overlay" class="loading-overlay">
-  <div class="spinner"></div>
-  <div class="loading-msg" id="loading-msg">Memproses...</div>
-</div>
-
-<!-- TOAST CONTAINER -->
+<!-- TOAST -->
 <div id="toast-container"></div>
 
 <script>
 // ========== FIREBASE CONFIG ==========
 let firebaseReady=false;
-
 const firebaseConfig={
   apiKey:"AIzaSyDv3AOrrlC0QrHIKbTi8KpSdaukGU8sSqo",
   authDomain:"plugin-transaksi.firebaseapp.com",
@@ -1431,494 +438,120 @@ const firebaseConfig={
 let auth=null;
 let db=null;
 
-// Initialize Firebase dengan error handling
 try{
   if(typeof firebase!=='undefined'){
     firebase.initializeApp(firebaseConfig);
     auth=firebase.auth();
     db=firebase.firestore();
     firebaseReady=true;
-    console.log('✅ Firebase initialized successfully');
-  }else{
-    throw new Error('Firebase SDK not loaded');
+    console.log('✅ Firebase siap!');
   }
 }catch(e){
-  console.error('❌ Firebase initialization error:', e);
-  console.log('⚠️ Falling back to localStorage mode...');
-  // Fallback functions akan didefine di bawah
+  console.error('Firebase error:', e);
 }
 
 let currentUser=null;
-let currentUserRole='user';
 let DB=[];
 
 // ========== AUTH ==========
-function setupAuthListener(){
-  if(!auth){
-    console.log('Firebase not available, using demo mode');
-    return;
-  }
-  
-  auth.onAuthStateChanged(user=>{
-    if(user){
-      currentUser=user;
-      document.getElementById('auth-screen').style.display='none';
-      document.getElementById('app').style.display='flex';
-      updateUserUI();
-      checkUserRole();
-      loadData();
-    } else{
-      document.getElementById('auth-screen').style.display='flex';
-      document.getElementById('app').style.display='none';
-    }
-  });
-}
-
 function signInGoogle(){
   if(!auth){
-    showToast('❌ Firebase tidak tersedia. Gunakan demo version atau setup Firebase.','danger');
+    alert('Firebase tidak tersedia');
     return;
   }
-  
+  document.getElementById('google-signin-btn').disabled=true;
   document.getElementById('auth-loading').style.display='block';
-  const authDenied=document.getElementById('auth-denied');
-  authDenied.style.display='none';
-  
   const provider=new firebase.auth.GoogleAuthProvider();
   auth.signInWithPopup(provider)
     .then(result=>{
-      console.log('✅ Login berhasil:', result.user.email);
+      console.log('Login berhasil');
       document.getElementById('auth-loading').style.display='none';
     })
     .catch(err=>{
-      console.error('❌ Login error:', err);
-      authDenied.style.display='block';
-      authDenied.textContent='❌ '+err.message;
+      console.error('Login error:', err);
+      document.getElementById('auth-denied').style.display='block';
+      document.getElementById('auth-denied').textContent='❌ '+err.message;
       document.getElementById('auth-loading').style.display='none';
-      
-      if(err.code==='auth/popup-blocked'){
-        authDenied.textContent='❌ Pop-up blocked. Pastikan allow pop-ups di browser settings.';
-      } else if(err.code==='auth/network-request-failed'){
-        authDenied.textContent='❌ Network error. Check internet connection.';
-      } else if(err.code==='auth/operation-not-supported-in-this-environment'){
-        authDenied.textContent='❌ Firebase tidak bisa initialized. Lihat console untuk detail.';
-      }
+      document.getElementById('google-signin-btn').disabled=false;
     });
 }
 
-function signOutGoogle(){
-  if(auth){
-    auth.signOut();
-  }
+function logout(){
+  if(auth) auth.signOut();
 }
 
-function updateUserUI(){
-  const avatar=currentUser.displayName?currentUser.displayName.charAt(0).toUpperCase():'U';
-  document.getElementById('user-avatar').textContent=avatar;
-  document.getElementById('user-name').textContent=currentUser.displayName||'User';
-  document.getElementById('user-email').textContent=currentUser.email||'';
-}
-
-async function checkUserRole(){
-  if(!db){
-    currentUserRole='user';
-    updateSysInfo();
-    return;
-  }
-  
-  try{
-    const doc=await db.collection('users').doc(currentUser.uid).get();
-    if(doc.exists){
-      currentUserRole=doc.data().role||'user';
-    }
-  }catch(e){
-    console.log('Role check error (using default user role)');
-  }
-  updateSysInfo();
-}
-
-// ========== DATA LOADING ==========
+// ========== DATA ==========
 async function loadData(){
-  if(!db){
-    console.log('Firestore not available, skipping data load');
-    return;
-  }
-  
+  if(!db) return;
   try{
-    showLoading(true);
-    console.log('📡 Loading data from Firestore...');
     const snap=await db.collection('registrasi').orderBy('tglReg','desc').get();
     DB=snap.docs.map(d=>({...d.data(),id:d.id}));
-    console.log('✅ Data loaded successfully:', DB.length, 'records');
-    
-    // Jika data kosong, tambahkan sample data untuk demo
-    if(DB.length===0){
-      console.log('⚠️ Data kosong, menambahkan sample data...');
-      addSampleData();
-    }
-    
-    renderTable();
-    updateDashboard();
-    showLoading(false);
+    console.log('Data loaded:', DB.length);
+    updateUI();
+    updateStats();
+    updateTable();
   }catch(e){
-    console.error('❌ Data loading error:', e);
-    showLoading(false);
-    
-    let errorMsg='Error memuat data: '+e.message;
-    if(e.code==='permission-denied'){
-      errorMsg='❌ Akses denied. Check Firestore rules atau login lagi.';
-    } else if(e.code==='unavailable'){
-      errorMsg='❌ Firestore tidak tersedia. Check internet connection.';
-    }
-    
-    showToast(errorMsg,'danger');
-    console.log('Full error:', e);
+    console.error('Load error:', e);
+    document.getElementById('auth-denied').textContent='❌ Error: '+e.message;
   }
 }
 
-// Add sample data untuk demo/testing
-async function addSampleData(){
-  const sampleData=[
-    {
-      nama:'PT. Sudah Expired',
-      invoice:'INV-EXP-001',
-      paket:'Professional',
-      tipe:'',
-      tglReg:'2024-01-15',
-      tglAktif:'2024-12-31',
-      catatan:'Sudah expired 5 bulan lalu',
-      userInput:currentUser?.email||'demo@app.com',
-      updateAt:new Date().toISOString()
-    },
-    {
-      nama:'PT. Akan Expired 10 Hari',
-      invoice:'INV-EXP-002',
-      paket:'Starter',
-      tipe:'',
-      tglReg:'2025-05-01',
-      tglAktif:'2025-06-15',
-      catatan:'Akan expired dalam 10 hari',
-      userInput:currentUser?.email||'demo@app.com',
-      updateAt:new Date().toISOString()
-    },
-    {
-      nama:'PT. Akan Expired 25 Hari',
-      invoice:'INV-EXP-003',
-      paket:'Enterprise',
-      tipe:'',
-      tglReg:'2025-04-10',
-      tglAktif:'2025-06-30',
-      catatan:'Akan expired dalam 25 hari',
-      userInput:currentUser?.email||'demo@app.com',
-      updateAt:new Date().toISOString()
-    },
-    {
-      nama:'PT. Masih Aktif 6 Bulan',
-      invoice:'INV-ACT-001',
-      paket:'Professional',
-      tipe:'',
-      tglReg:'2025-06-01',
-      tglAktif:'2025-12-31',
-      catatan:'Masih aktif, expired dalam 6 bulan',
-      userInput:currentUser?.email||'demo@app.com',
-      updateAt:new Date().toISOString()
-    }
-  ];
-  
-  if(!db) return;
-  
-  try{
-    for(const data of sampleData){
-      await db.collection('registrasi').add(data);
-    }
-    console.log('✅ Sample data berhasil ditambahkan');
-    loadData();
-  }catch(e){
-    console.error('Error adding sample data:', e);
-  }
-}
-
-// ========== FORM SUBMISSION ==========
 async function submitForm(e){
   e.preventDefault();
-  
-  if(!db){
-    showToast('❌ Firebase tidak tersedia. Gunakan demo version.','danger');
-    return;
-  }
-  
-  const editId=document.getElementById('form-registrasi').getAttribute('data-edit-id');
+  if(!db) return;
+  const editId=document.getElementById('form-registrasi')?.getAttribute('data-edit-id');
   const data={
     nama:document.getElementById('form-nama').value,
     invoice:document.getElementById('form-invoice').value,
     paket:document.getElementById('form-paket').value,
-    tipe:document.getElementById('form-tipe').value,
+    tipe:document.getElementById('form-tipe')?.value||'',
     tglReg:document.getElementById('form-tglReg').value,
     tglAktif:document.getElementById('form-tglAktif').value,
-    catatan:document.getElementById('form-catatan').value,
-    userInput:currentUser.email,
+    catatan:document.getElementById('form-catatan')?.value||'',
+    userInput:currentUser?.email||'',
     updateAt:new Date().toISOString()
   };
-
-  showLoading(true);
   try{
     if(editId){
       await db.collection('registrasi').doc(editId).update(data);
-      showToast('✅ Data berhasil diperbarui','success');
+      alert('Data berhasil diperbarui');
     }else{
       await db.collection('registrasi').add(data);
-      showToast('✅ Data berhasil disimpan','success');
+      alert('Data berhasil disimpan');
     }
-    resetForm();
     loadData();
     showPage('data','Data Registrasi');
   }catch(e){
-    showToast('❌ Error: '+e.message,'danger');
-    console.error('Form submission error:', e);
+    alert('Error: '+e.message);
   }
-  showLoading(false);
 }
 
-// ========== DELETE ==========
 async function deleteRow(id){
-  if(!confirm('Apakah Anda yakin ingin menghapus data ini?')) return;
-  
-  if(!db){
-    showToast('❌ Firebase tidak tersedia.','danger');
-    return;
-  }
-  
-  showLoading(true);
+  if(!confirm('Hapus data?')) return;
+  if(!db) return;
   try{
     await db.collection('registrasi').doc(id).delete();
-    showToast('✅ Data berhasil dihapus','success');
+    alert('Data berhasil dihapus');
     loadData();
   }catch(e){
-    showToast('❌ Error: '+e.message,'danger');
-    console.error('Delete error:', e);
+    alert('Error: '+e.message);
   }
-  showLoading(false);
 }
 
-// Initialize auth listener saat page loaded
-document.addEventListener('DOMContentLoaded',()=>{
-  const savedTheme=localStorage.getItem('theme')||'light';
-  document.documentElement.setAttribute('data-theme',savedTheme);
-  document.querySelector('.theme-toggle').textContent=savedTheme==='dark'?'☀️':'🌙';
-  
-  // Setup auth listener
-  if(firebaseReady){
-    setupAuthListener();
-  }else{
-    console.warn('⚠️ Firebase not ready. Please setup Firebase or use demo version.');
-    // Show helpful message
-    setTimeout(()=>{
-      const authDenied=document.getElementById('auth-denied');
-      authDenied.style.display='block';
-      authDenied.innerHTML=`❌ <strong>Firebase tidak ter-load.</strong><br>Solusi:<br>1. Gunakan index-enhanced-DEMO.html untuk testing<br>2. Atau setup Firebase sesuai panduan di TROUBLESHOOTING_LOGIN.md<br>3. Check console (F12) untuk detail error`;
-    },500);
-  }
-});
-
-
-function renderTable(){
-  const tbody=document.getElementById('table-body');
-  if(DB.length===0){
-    tbody.innerHTML='<tr><td colspan="8" style="text-align:center;color:var(--text3);padding:30px">Tidak ada data</td></tr>';
-    return;
-  }
-  tbody.innerHTML=DB.map((r,i)=>`
-    <tr>
-      <td>${i+1}</td>
-      <td><strong style="color:var(--primary)">${r.nama||'–'}</strong></td>
-      <td>${r.invoice||'–'}</td>
-      <td><span class="badge badge-blue">${r.paket||'–'}</span></td>
-      <td>${r.tglReg||'–'}</td>
-      <td>${r.tglAktif||'–'}</td>
-      <td>${getStatusBadge(r.tglAktif)}</td>
-      <td style="font-size:12px">
-        <button class="btn btn-small btn-secondary" onclick="editRow('${r.id}')">✏️ Edit</button>
-        <button class="btn btn-small btn-danger" onclick="deleteRow('${r.id}')">🗑️ Hapus</button>
-      </td>
-    </tr>
-  `).join('');
+// ========== UI ==========
+function showPage(id,title){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  const page=document.getElementById('page-'+id);
+  if(page) page.classList.add('active');
+  document.getElementById('page-title').textContent=title;
 }
 
-function getStatus(tglAktif){
-  if(!tglAktif) return 'Tidak diketahui';
-  const exp=new Date(tglAktif);
-  const now=new Date();
-  if(exp<now) return 'Kadaluarsa';
-  const diff=(exp-now)/(1000*60*60*24);
-  if(diff<=30) return 'Akan Expired';
-  return 'Aktif';
-}
-
-function getStatusBadge(tglAktif){
-  const status=getStatus(tglAktif);
-  if(status==='Aktif') return '<span class="badge badge-active">✅ Aktif</span>';
-  if(status==='Akan Expired') return '<span class="badge badge-warning">⏰ Akan Expired</span>';
-  return '<span class="badge badge-danger">❌ Kadaluarsa</span>';
-}
-
-function updateDashboard(){
-  const total=DB.length;
-  const active=DB.filter(r=>getStatus(r.tglAktif)==='Aktif').length;
-  const expiring=DB.filter(r=>getStatus(r.tglAktif)==='Akan Expired').length;
-  
-  document.getElementById('stat-total').textContent=total;
-  document.getElementById('stat-active').textContent=active;
-  document.getElementById('stat-expiring').textContent=expiring;
-
-  // Distribusi Paket
-  const paketCount={};
-  DB.forEach(r=>{
-    const p=r.paket||'Tidak diketahui';
-    paketCount[p]=(paketCount[p]||0)+1;
-  });
-  
-  const paketHTML=Object.entries(paketCount).map(([p,c])=>`
-    <div style="display:flex;justify-content:space-between;align-items:center;padding:12px;background:var(--surface2);border-radius:8px">
-      <span style="font-weight:700;color:var(--text)">${p}</span>
-      <span style="background:var(--gradient-primary);color:#fff;padding:4px 12px;border-radius:6px;font-weight:700">${c}</span>
-    </div>
-  `).join('');
-  document.getElementById('stat-paket-list').innerHTML=paketHTML||'Tidak ada data';
-
-  // Upcoming Expiry
-  const upcoming=DB.filter(r=>getStatus(r.tglAktif)==='Akan Expired').sort((a,b)=>new Date(a.tglAktif)-new Date(b.tglAktif)).slice(0,5);
-  const upcomingHTML=upcoming.length>0?upcoming.map(r=>`
-    <div style="padding:12px;background:var(--warn-bg);border-left:4px solid var(--warn);border-radius:8px;display:flex;justify-content:space-between;align-items:center">
-      <div>
-        <div style="font-weight:700;color:var(--text)">${r.nama}</div>
-        <div style="font-size:12px;color:var(--text3)">Expired: ${r.tglAktif}</div>
-      </div>
-      <span style="font-weight:700;color:var(--warn)">${Math.ceil((new Date(r.tglAktif)-new Date())/(1000*60*60*24))} hari</span>
-    </div>
-  `).join(''):'<div style="color:var(--text3);padding:20px;text-align:center">Tidak ada registrasi yang akan expired dalam 30 hari</div>';
-  document.getElementById('upcoming-expiry').innerHTML=upcomingHTML;
-  
-  // Update komisi table
-  updateKomisiTable();
-  
-  // Update history
-  updateHistoryList();
-}
-
-function updateKomisiTable(){
-  if(DB.length===0){
-    document.getElementById('komisi-tbody').innerHTML='<tr><td colspan="6" style="text-align:center;color:var(--text3);padding:30px">Tidak ada data</td></tr>';
-    return;
-  }
-  
-  document.getElementById('komisi-tbody').innerHTML=DB.map((r,i)=>`
-    <tr>
-      <td>${i+1}</td>
-      <td>${r.tglReg||'-'}</td>
-      <td>${r.invoice||'-'}</td>
-      <td><strong style="color:var(--primary)">${r.nama||'-'}</strong></td>
-      <td><span class="badge badge-blue">${r.paket||'-'}</span></td>
-      <td>${r.catatan||'-'}</td>
-    </tr>
-  `).join('');
-}
-
-function updateHistoryList(){
-  // Categorize data
-  const now=new Date();
-  const aktif=[];
-  const expiring=[];
-  const expired=[];
-  
-  DB.forEach(r=>{
-    const exp=new Date(r.tglAktif);
-    const diff=(exp-now)/(1000*60*60*24);
-    
-    if(exp<now){
-      expired.push(r);
-    } else if(diff<=30){
-      expiring.push(r);
-    } else {
-      aktif.push(r);
-    }
-  });
-  
-  // Update summary
-  document.getElementById('hist-aktif').textContent=aktif.length;
-  document.getElementById('hist-expiring').textContent=expiring.length;
-  document.getElementById('hist-expired').textContent=expired.length;
-  
-  // Update expired list
-  const expiredHTML=expired.length>0?expired.map(r=>`
-    <div style="padding:12px;background:var(--danger-bg);border-left:4px solid var(--danger);border-radius:8px">
-      <div style="font-weight:700;color:var(--text)">${r.nama}</div>
-      <div style="font-size:12px;color:var(--text3);margin-top:4px">
-        <strong>Invoice:</strong> ${r.invoice} | <strong>Paket:</strong> ${r.paket}
-      </div>
-      <div style="font-size:12px;color:var(--text3);margin-top:4px">
-        <strong>Tgl Registrasi:</strong> ${r.tglReg} | <strong>Expired:</strong> ${r.tglAktif}
-      </div>
-      ${r.catatan?`<div style="font-size:12px;color:var(--text3);margin-top:4px;font-style:italic">📝 ${r.catatan}</div>`:''}
-    </div>
-  `).join(''):'<div style="text-align:center;color:var(--text3);padding:20px">✅ Tidak ada registrasi yang expired</div>';
-  document.getElementById('history-expired').innerHTML=expiredHTML;
-  
-  // Update expiring list
-  const expiringHTML=expiring.length>0?expiring.sort((a,b)=>new Date(a.tglAktif)-new Date(b.tglAktif)).map(r=>{
-    const sisa=Math.ceil((new Date(r.tglAktif)-now)/(1000*60*60*24));
-    return `
-    <div style="padding:12px;background:var(--warn-bg);border-left:4px solid var(--warn);border-radius:8px">
-      <div style="font-weight:700;color:var(--text)">${r.nama}</div>
-      <div style="font-size:12px;color:var(--text3);margin-top:4px">
-        <strong>Invoice:</strong> ${r.invoice} | <strong>Paket:</strong> ${r.paket}
-      </div>
-      <div style="font-size:12px;color:var(--text3);margin-top:4px">
-        <strong>Tgl Registrasi:</strong> ${r.tglReg} | <strong>Expired:</strong> ${r.tglAktif}
-      </div>
-      <div style="font-size:12px;font-weight:700;color:var(--warn);margin-top:4px">
-        ⏰ Sisa ${sisa} hari
-      </div>
-      ${r.catatan?`<div style="font-size:12px;color:var(--text3);margin-top:4px;font-style:italic">📝 ${r.catatan}</div>`:''}
-    </div>
-  `}).join(''):'<div style="text-align:center;color:var(--text3);padding:20px">✅ Tidak ada registrasi yang akan expired</div>';
-  document.getElementById('history-expiring').innerHTML=expiringHTML;
-  
-  // Update aktif list
-  const aktifHTML=aktif.length>0?aktif.map(r=>{
-    const sisa=Math.ceil((new Date(r.tglAktif)-now)/(1000*60*60*24));
-    return `
-    <div style="padding:12px;background:var(--success-bg);border-left:4px solid var(--success);border-radius:8px">
-      <div style="font-weight:700;color:var(--text)">${r.nama}</div>
-      <div style="font-size:12px;color:var(--text3);margin-top:4px">
-        <strong>Invoice:</strong> ${r.invoice} | <strong>Paket:</strong> ${r.paket}
-      </div>
-      <div style="font-size:12px;color:var(--text3);margin-top:4px">
-        <strong>Tgl Registrasi:</strong> ${r.tglReg} | <strong>Expired:</strong> ${r.tglAktif}
-      </div>
-      <div style="font-size:12px;font-weight:700;color:var(--success);margin-top:4px">
-        ✅ Aktif (${sisa} hari lagi)
-      </div>
-      ${r.catatan?`<div style="font-size:12px;color:var(--text3);margin-top:4px;font-style:italic">📝 ${r.catatan}</div>`:''}
-    </div>
-  `).join(''):'<div style="text-align:center;color:var(--text3);padding:20px">Tidak ada registrasi yang aktif</div>';
-  document.getElementById('history-aktif').innerHTML=aktifHTML;
-}
-
-
-
-// ========== FORM HELPERS ==========
-function resetForm(){
-  document.getElementById('form-registrasi').reset();
-  document.getElementById('form-registrasi').removeAttribute('data-edit-id');
-}
-
-async function editRow(id){
+function editRow(id){
   const row=DB.find(r=>r.id===id);
   if(!row) return;
   document.getElementById('form-nama').value=row.nama;
   document.getElementById('form-invoice').value=row.invoice;
   document.getElementById('form-paket').value=row.paket;
-  document.getElementById('form-tipe').value=row.tipe||'';
   document.getElementById('form-tglReg').value=row.tglReg;
   document.getElementById('form-tglAktif').value=row.tglAktif;
   document.getElementById('form-catatan').value=row.catatan||'';
@@ -1926,25 +559,9 @@ async function editRow(id){
   showPage('form','Edit Registrasi');
 }
 
-// ========== UI FUNCTIONS ==========
-function showPage(id, title){
-  console.log('Switching to page:', id);
-  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
-  const page=document.getElementById('page-'+id);
-  if(!page){
-    console.error('Page not found:', 'page-'+id);
-    return;
-  }
-  page.classList.add('active');
-  document.getElementById('page-title').textContent=title;
-  document.getElementById('page-sub').textContent='';
-}
-
-function navigateTo(pageId, pageTitle){
-  showPage(pageId, pageTitle);
-  // Update active menu
-  document.querySelectorAll('.nav-item').forEach(item=>item.classList.remove('active'));
-  event.target.closest('.nav-item')?.classList.add('active');
+function resetForm(){
+  document.getElementById('form-registrasi')?.reset();
+  document.getElementById('form-registrasi')?.removeAttribute('data-edit-id');
 }
 
 function toggleSidebar(){
@@ -1960,133 +577,84 @@ function toggleTheme(){
   localStorage.setItem('theme',isDark?'light':'dark');
 }
 
-function showLoading(show){
-  const overlay=document.getElementById('loading-overlay');
-  if(show) overlay.classList.add('show');
-  else overlay.classList.remove('show');
+// ========== UPDATE VIEWS ==========
+function updateUI(){
+  const avatar=currentUser?.displayName?.charAt(0).toUpperCase()||'U';
+  const name=currentUser?.displayName||'User';
+  const email=currentUser?.email||'';
+  document.getElementById('user-avatar').textContent=avatar;
+  document.getElementById('user-name').textContent=name;
+  document.getElementById('user-email').textContent=email;
 }
 
-function showToast(msg,type='info'){
-  const container=document.getElementById('toast-container');
-  const toast=document.createElement('div');
-  toast.className='toast '+type;
-  const icon={'success':'✅','danger':'❌','warn':'⚠️','info':'ℹ️'}[type]||'ℹ️';
-  toast.innerHTML=`<span>${icon}</span><span>${msg}</span>`;
-  container.appendChild(toast);
-  setTimeout(()=>toast.remove(),3000);
+function updateStats(){
+  const total=DB.length;
+  const active=DB.filter(r=>new Date(r.tglAktif)>=new Date()).length;
+  const expiring=DB.filter(r=>{
+    const exp=new Date(r.tglAktif);
+    const days=(exp-new Date())/(1000*60*60*24);
+    return days>0&&days<=30;
+  }).length;
+  document.getElementById('stat-total').textContent=total;
+  document.getElementById('stat-active').textContent=active;
+  document.getElementById('stat-expiring').textContent=expiring;
 }
 
-function openModal(id){
-  const modal=document.getElementById(id);
-  if(modal) modal.classList.add('open');
-}
-
-function closeModal(){
-  document.querySelectorAll('.modal-overlay').forEach(m=>m.classList.remove('open'));
-}
-
-// ========== EXPORT/IMPORT ==========
-function exportCSV(){
-  const headers=['No','Nama Perusahaan','Invoice','Paket','Tgl Registrasi','Tgl Aktif','Status'];
-  const rows=DB.map((r,i)=>[i+1,r.nama,r.invoice,r.paket,r.tglReg,r.tglAktif,getStatus(r.tglAktif)]);
-  const csv=[headers,...rows].map(r=>r.map(v=>`"${v}"`).join(',')).join('\n');
-  const a=document.createElement('a');
-  a.href='data:text/csv;charset=utf-8,\uFEFF'+encodeURIComponent(csv);
-  a.download='registrasi_'+new Date().toISOString().split('T')[0]+'.csv';
-  a.click();
-  showToast('CSV berhasil diekspor!','success');
-}
-
-async function importExcel(e){
-  if(currentUserRole!=='admin'){
-    showToast('Hanya admin yang dapat import data','warn');
+function updateTable(){
+  const search=document.getElementById('search')?.value.toLowerCase()||'';
+  const filtered=DB.filter(r=>
+    r.nama.toLowerCase().includes(search)||
+    r.invoice.toLowerCase().includes(search)||
+    r.paket.toLowerCase().includes(search)
+  );
+  const tbody=document.getElementById('tbody');
+  if(!tbody) return;
+  if(filtered.length===0){
+    tbody.innerHTML='<tr><td colspan="7" style="text-align:center;padding:30px">Tidak ada data</td></tr>';
     return;
   }
-  const file=e.target.files[0];
-  if(!file) return;
-  showLoading(true);
-  try{
-    showToast('Import berhasil diproses','success');
-    loadData();
-  }catch(err){
-    showToast('Error: '+err.message,'danger');
+  tbody.innerHTML=filtered.map((r,i)=>{
+    const status=new Date(r.tglAktif)<new Date()?'❌ Kadaluarsa':new Date(r.tglAktif)-new Date()<30*24*60*60*1000?'⏰ Akan Expired':'✅ Aktif';
+    return `<tr>
+      <td>${i+1}</td>
+      <td><strong style="color:var(--primary)">${r.nama}</strong></td>
+      <td>${r.invoice}</td>
+      <td><span class="badge badge-blue">${r.paket}</span></td>
+      <td>${r.tglAktif||'-'}</td>
+      <td>${status}</td>
+      <td style="font-size:12px">
+        <button class="btn btn-small btn-secondary" onclick="editRow('${r.id}')">✏️</button>
+        <button class="btn btn-small btn-danger" onclick="deleteRow('${r.id}')">🗑️</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+// ========== INIT ==========
+document.addEventListener('DOMContentLoaded',()=>{
+  const savedTheme=localStorage.getItem('theme')||'light';
+  document.documentElement.setAttribute('data-theme',savedTheme);
+  document.querySelector('.theme-toggle').textContent=savedTheme==='dark'?'☀️':'🌙';
+  
+  if(firebaseReady && auth){
+    auth.onAuthStateChanged(user=>{
+      if(user){
+        currentUser=user;
+        document.getElementById('auth-demo').style.display='none';
+        document.getElementById('app').style.display='flex';
+        updateUI();
+        loadData();
+      } else{
+        document.getElementById('auth-demo').style.display='flex';
+        document.getElementById('app').style.display='none';
+      }
+    });
   }
-  showLoading(false);
-}
-
-function printKomisi(){
-  const data=DB;
-  const rows=data.map((r,i)=>({
-    no:i+1,
-    tanggal:r.tglReg,
-    invoice:r.invoice,
-    nama:r.nama,
-    produk:r.paket,
-    keterangan:r.catatan||''
-  }));
-  
-  const tglCetak=new Date().toLocaleDateString('id-ID',{year:'numeric',month:'long',day:'numeric'});
-  const w=window.open('','','width=800,height=600');
-  w.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>Laporan Komisi</title>
-  <style>
-  body{font-family:Arial,sans-serif;margin:20px}
-  table{width:100%;border-collapse:collapse;margin-bottom:20px}
-  th,td{border:1px solid #333;padding:8px;text-align:left}
-  th{background:#667eea;color:#fff;font-weight:bold}
-  .footer{text-align:center;font-size:12px;color:#666;margin-top:20px}
-  </style></head><body>
-  <h1 style="text-align:center">Laporan Registrasi Plugin Transaksi</h1>
-  <table>
-    <thead><tr>
-      <th class="no">No</th>
-      <th class="tgl">Tanggal</th>
-      <th class="inv">Invoice</th>
-      <th class="nama">Nama Perusahaan</th>
-      <th class="produk">Produk</th>
-      <th class="ket">Keterangan</th>
-    </tr></thead>
-    <tbody>
-  ${rows.map(row=>`<tr>
-      <td class="no">${row.no}</td>
-      <td class="tgl">${row.tanggal}</td>
-      <td class="inv">${row.invoice}</td>
-      <td class="nama">${row.nama}</td>
-      <td class="produk">${row.produk}</td>
-      <td class="ket">${row.keterangan}</td>
-    </tr>`).join('')}
-    </tbody>
-  </table>
-  <div class="footer">Total: ${data.length} registrasi &nbsp;·&nbsp; Dicetak: ${tglCetak}</div>
-  <script>window.onload=()=>window.print()<\/script>
-  </body></html>`);
-  w.document.close();
-}
-
-// ========== SYS INFO ==========
-function updateSysInfo(){
-  const el=document.getElementById('sys-info');
-  if(!el) return;
-  const roleLabel=currentUserRole==='admin'?'<span class="badge badge-active">👨‍💼 Admin</span>':'<span class="badge badge-blue">👤 User</span>';
-  const importBtn=document.getElementById('btn-import-excel');
-  const importNote=document.getElementById('import-note-nonadmin');
-  if(importBtn) importBtn.style.display=currentUserRole==='admin'?'':'none';
-  if(importNote) importNote.style.display=currentUserRole!=='admin'?'':'none';
-  
-  el.innerHTML=`
-    <div style="margin-bottom:12px"><strong>🏢 Project ID:</strong> plugin-transaksi</div>
-    <div style="margin-bottom:12px"><strong>👤 User Login:</strong> ${currentUser?.displayName||'–'}</div>
-    <div style="margin-bottom:12px"><strong>📧 Email:</strong> ${currentUser?.email||'–'}</div>
-    <div style="margin-bottom:12px"><strong>🔐 Role:</strong> ${roleLabel}</div>
-    <div style="margin-bottom:12px"><strong>📊 Total Data:</strong> <span style="background:var(--gradient-primary);color:#fff;padding:2px 8px;border-radius:4px;font-weight:700">${DB.length}</span></div>
-    <div><strong>📦 Versi App:</strong> <span style="color:var(--success);font-weight:700">3.0 Enhanced</span> (Firebase + Enhanced UI)</div>
-  `;
-}
-
-// ========== KEYBOARD SHORTCUTS ==========
-document.addEventListener('keydown',e=>{
-  if(e.key==='Escape') closeModal();
 });
 
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape') location.reload();
+});
 </script>
 </body>
 </html>
