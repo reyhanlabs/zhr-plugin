@@ -981,7 +981,23 @@ tbody tr:hover{background:var(--surface2)}
             </button>
           </div>
           <div class="card-body">
-            <div id="komisi-content" style="color:var(--text3);text-align:center;padding:30px">Memuat...</div>
+            <div style="overflow-x:auto">
+              <table id="komisi-table">
+                <thead>
+                  <tr>
+                    <th>No</th>
+                    <th>Tanggal</th>
+                    <th>Invoice</th>
+                    <th>Perusahaan</th>
+                    <th>Paket</th>
+                    <th>Keterangan</th>
+                  </tr>
+                </thead>
+                <tbody id="komisi-tbody">
+                  <tr><td colspan="6" style="text-align:center;color:var(--text3);padding:30px">Memuat data...</td></tr>
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       </div>
@@ -993,7 +1009,9 @@ tbody tr:hover{background:var(--surface2)}
             <h2>⏱️ Riwayat Update</h2>
           </div>
           <div class="card-body">
-            <div id="history-content" style="color:var(--text3);text-align:center;padding:30px">Memuat...</div>
+            <div id="history-list" style="display:grid;gap:12px">
+              <div style="text-align:center;color:var(--text3);padding:30px">Memuat data...</div>
+            </div>
           </div>
         </div>
       </div>
@@ -1669,6 +1687,48 @@ function updateDashboard(){
     </div>
   `).join(''):'<div style="color:var(--text3);padding:20px;text-align:center">Tidak ada registrasi yang akan expired dalam 30 hari</div>';
   document.getElementById('upcoming-expiry').innerHTML=upcomingHTML;
+  
+  // Update komisi table
+  updateKomisiTable();
+  
+  // Update history
+  updateHistoryList();
+}
+
+function updateKomisiTable(){
+  if(DB.length===0){
+    document.getElementById('komisi-tbody').innerHTML='<tr><td colspan="6" style="text-align:center;color:var(--text3);padding:30px">Tidak ada data</td></tr>';
+    return;
+  }
+  
+  document.getElementById('komisi-tbody').innerHTML=DB.map((r,i)=>`
+    <tr>
+      <td>${i+1}</td>
+      <td>${r.tglReg||'-'}</td>
+      <td>${r.invoice||'-'}</td>
+      <td><strong style="color:var(--primary)">${r.nama||'-'}</strong></td>
+      <td><span class="badge badge-blue">${r.paket||'-'}</span></td>
+      <td>${r.catatan||'-'}</td>
+    </tr>
+  `).join('');
+}
+
+function updateHistoryList(){
+  const historyHTML=DB.length>0?`
+    <div style="padding:12px;background:var(--primary-light);border-radius:8px;border-left:4px solid var(--primary)">
+      <strong style="color:var(--text)">Total Registrasi: ${DB.length}</strong><br>
+      <span style="font-size:12px;color:var(--text2)">Terakhir diupdate: ${new Date().toLocaleString('id-ID')}</span>
+    </div>
+    ${DB.map((r,i)=>`
+      <div style="padding:12px;background:var(--surface2);border-radius:8px;border-left:4px solid var(--success)">
+        <div style="font-weight:700;color:var(--text)">${i+1}. ${r.nama}</div>
+        <div style="font-size:12px;color:var(--text3)">Invoice: ${r.invoice} | Paket: ${r.paket}</div>
+        <div style="font-size:12px;color:var(--text3)">Registrasi: ${r.tglReg} → Expired: ${r.tglAktif}</div>
+      </div>
+    `).join('')}
+  `:'<div style="color:var(--text3);padding:20px;text-align:center">Tidak ada data</div>';
+  
+  document.getElementById('history-list').innerHTML=historyHTML;
 }
 
 
