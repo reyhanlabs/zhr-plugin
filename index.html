@@ -1004,13 +1004,61 @@ tbody tr:hover{background:var(--surface2)}
 
       <!-- PAGE: HISTORY -->
       <div id="page-history" class="page">
+        <!-- SUMMARY CARD -->
         <div class="card">
           <div class="card-header">
-            <h2>⏱️ Riwayat Update</h2>
+            <h2>📊 Ringkasan Data</h2>
           </div>
           <div class="card-body">
-            <div id="history-list" style="display:grid;gap:12px">
-              <div style="text-align:center;color:var(--text3);padding:30px">Memuat data...</div>
+            <div class="grid-3">
+              <div style="padding:12px;background:var(--success-bg);border-radius:8px;text-align:center">
+                <div style="font-size:24px;font-weight:800;color:var(--success)" id="hist-aktif">0</div>
+                <div style="font-size:12px;color:var(--text);font-weight:600">✅ AKTIF</div>
+              </div>
+              <div style="padding:12px;background:var(--warn-bg);border-radius:8px;text-align:center">
+                <div style="font-size:24px;font-weight:800;color:var(--warn)" id="hist-expiring">0</div>
+                <div style="font-size:12px;color:var(--text);font-weight:600">⏰ AKAN EXPIRED</div>
+              </div>
+              <div style="padding:12px;background:var(--danger-bg);border-radius:8px;text-align:center">
+                <div style="font-size:24px;font-weight:800;color:var(--danger)" id="hist-expired">0</div>
+                <div style="font-size:12px;color:var(--text);font-weight:600">❌ EXPIRED</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- REGISTRASI YANG SUDAH EXPIRED -->
+        <div class="card">
+          <div class="card-header">
+            <h2>❌ Registrasi Sudah Expired</h2>
+          </div>
+          <div class="card-body">
+            <div id="history-expired" style="display:grid;gap:10px">
+              <div style="text-align:center;color:var(--text3);padding:20px">Tidak ada registrasi yang expired</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- REGISTRASI YANG AKAN EXPIRED -->
+        <div class="card">
+          <div class="card-header">
+            <h2>⏰ Registrasi Akan Expired (30 hari)</h2>
+          </div>
+          <div class="card-body">
+            <div id="history-expiring" style="display:grid;gap:10px">
+              <div style="text-align:center;color:var(--text3);padding:20px">Tidak ada registrasi yang akan expired</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- REGISTRASI YANG MASIH AKTIF -->
+        <div class="card">
+          <div class="card-header">
+            <h2>✅ Registrasi Masih Aktif</h2>
+          </div>
+          <div class="card-body">
+            <div id="history-aktif" style="display:grid;gap:10px">
+              <div style="text-align:center;color:var(--text3);padding:20px">Tidak ada registrasi yang aktif</div>
             </div>
           </div>
         </div>
@@ -1509,6 +1557,13 @@ async function loadData(){
     const snap=await db.collection('registrasi').orderBy('tglReg','desc').get();
     DB=snap.docs.map(d=>({...d.data(),id:d.id}));
     console.log('✅ Data loaded successfully:', DB.length, 'records');
+    
+    // Jika data kosong, tambahkan sample data untuk demo
+    if(DB.length===0){
+      console.log('⚠️ Data kosong, menambahkan sample data...');
+      addSampleData();
+    }
+    
     renderTable();
     updateDashboard();
     showLoading(false);
@@ -1525,6 +1580,68 @@ async function loadData(){
     
     showToast(errorMsg,'danger');
     console.log('Full error:', e);
+  }
+}
+
+// Add sample data untuk demo/testing
+async function addSampleData(){
+  const sampleData=[
+    {
+      nama:'PT. Sudah Expired',
+      invoice:'INV-EXP-001',
+      paket:'Professional',
+      tipe:'',
+      tglReg:'2024-01-15',
+      tglAktif:'2024-12-31',
+      catatan:'Sudah expired 5 bulan lalu',
+      userInput:currentUser?.email||'demo@app.com',
+      updateAt:new Date().toISOString()
+    },
+    {
+      nama:'PT. Akan Expired 10 Hari',
+      invoice:'INV-EXP-002',
+      paket:'Starter',
+      tipe:'',
+      tglReg:'2025-05-01',
+      tglAktif:'2025-06-15',
+      catatan:'Akan expired dalam 10 hari',
+      userInput:currentUser?.email||'demo@app.com',
+      updateAt:new Date().toISOString()
+    },
+    {
+      nama:'PT. Akan Expired 25 Hari',
+      invoice:'INV-EXP-003',
+      paket:'Enterprise',
+      tipe:'',
+      tglReg:'2025-04-10',
+      tglAktif:'2025-06-30',
+      catatan:'Akan expired dalam 25 hari',
+      userInput:currentUser?.email||'demo@app.com',
+      updateAt:new Date().toISOString()
+    },
+    {
+      nama:'PT. Masih Aktif 6 Bulan',
+      invoice:'INV-ACT-001',
+      paket:'Professional',
+      tipe:'',
+      tglReg:'2025-06-01',
+      tglAktif:'2025-12-31',
+      catatan:'Masih aktif, expired dalam 6 bulan',
+      userInput:currentUser?.email||'demo@app.com',
+      updateAt:new Date().toISOString()
+    }
+  ];
+  
+  if(!db) return;
+  
+  try{
+    for(const data of sampleData){
+      await db.collection('registrasi').add(data);
+    }
+    console.log('✅ Sample data berhasil ditambahkan');
+    loadData();
+  }catch(e){
+    console.error('Error adding sample data:', e);
   }
 }
 
@@ -1714,21 +1831,84 @@ function updateKomisiTable(){
 }
 
 function updateHistoryList(){
-  const historyHTML=DB.length>0?`
-    <div style="padding:12px;background:var(--primary-light);border-radius:8px;border-left:4px solid var(--primary)">
-      <strong style="color:var(--text)">Total Registrasi: ${DB.length}</strong><br>
-      <span style="font-size:12px;color:var(--text2)">Terakhir diupdate: ${new Date().toLocaleString('id-ID')}</span>
-    </div>
-    ${DB.map((r,i)=>`
-      <div style="padding:12px;background:var(--surface2);border-radius:8px;border-left:4px solid var(--success)">
-        <div style="font-weight:700;color:var(--text)">${i+1}. ${r.nama}</div>
-        <div style="font-size:12px;color:var(--text3)">Invoice: ${r.invoice} | Paket: ${r.paket}</div>
-        <div style="font-size:12px;color:var(--text3)">Registrasi: ${r.tglReg} → Expired: ${r.tglAktif}</div>
-      </div>
-    `).join('')}
-  `:'<div style="color:var(--text3);padding:20px;text-align:center">Tidak ada data</div>';
+  // Categorize data
+  const now=new Date();
+  const aktif=[];
+  const expiring=[];
+  const expired=[];
   
-  document.getElementById('history-list').innerHTML=historyHTML;
+  DB.forEach(r=>{
+    const exp=new Date(r.tglAktif);
+    const diff=(exp-now)/(1000*60*60*24);
+    
+    if(exp<now){
+      expired.push(r);
+    } else if(diff<=30){
+      expiring.push(r);
+    } else {
+      aktif.push(r);
+    }
+  });
+  
+  // Update summary
+  document.getElementById('hist-aktif').textContent=aktif.length;
+  document.getElementById('hist-expiring').textContent=expiring.length;
+  document.getElementById('hist-expired').textContent=expired.length;
+  
+  // Update expired list
+  const expiredHTML=expired.length>0?expired.map(r=>`
+    <div style="padding:12px;background:var(--danger-bg);border-left:4px solid var(--danger);border-radius:8px">
+      <div style="font-weight:700;color:var(--text)">${r.nama}</div>
+      <div style="font-size:12px;color:var(--text3);margin-top:4px">
+        <strong>Invoice:</strong> ${r.invoice} | <strong>Paket:</strong> ${r.paket}
+      </div>
+      <div style="font-size:12px;color:var(--text3);margin-top:4px">
+        <strong>Tgl Registrasi:</strong> ${r.tglReg} | <strong>Expired:</strong> ${r.tglAktif}
+      </div>
+      ${r.catatan?`<div style="font-size:12px;color:var(--text3);margin-top:4px;font-style:italic">📝 ${r.catatan}</div>`:''}
+    </div>
+  `).join(''):'<div style="text-align:center;color:var(--text3);padding:20px">✅ Tidak ada registrasi yang expired</div>';
+  document.getElementById('history-expired').innerHTML=expiredHTML;
+  
+  // Update expiring list
+  const expiringHTML=expiring.length>0?expiring.sort((a,b)=>new Date(a.tglAktif)-new Date(b.tglAktif)).map(r=>{
+    const sisa=Math.ceil((new Date(r.tglAktif)-now)/(1000*60*60*24));
+    return `
+    <div style="padding:12px;background:var(--warn-bg);border-left:4px solid var(--warn);border-radius:8px">
+      <div style="font-weight:700;color:var(--text)">${r.nama}</div>
+      <div style="font-size:12px;color:var(--text3);margin-top:4px">
+        <strong>Invoice:</strong> ${r.invoice} | <strong>Paket:</strong> ${r.paket}
+      </div>
+      <div style="font-size:12px;color:var(--text3);margin-top:4px">
+        <strong>Tgl Registrasi:</strong> ${r.tglReg} | <strong>Expired:</strong> ${r.tglAktif}
+      </div>
+      <div style="font-size:12px;font-weight:700;color:var(--warn);margin-top:4px">
+        ⏰ Sisa ${sisa} hari
+      </div>
+      ${r.catatan?`<div style="font-size:12px;color:var(--text3);margin-top:4px;font-style:italic">📝 ${r.catatan}</div>`:''}
+    </div>
+  `}).join(''):'<div style="text-align:center;color:var(--text3);padding:20px">✅ Tidak ada registrasi yang akan expired</div>';
+  document.getElementById('history-expiring').innerHTML=expiringHTML;
+  
+  // Update aktif list
+  const aktifHTML=aktif.length>0?aktif.map(r=>{
+    const sisa=Math.ceil((new Date(r.tglAktif)-now)/(1000*60*60*24));
+    return `
+    <div style="padding:12px;background:var(--success-bg);border-left:4px solid var(--success);border-radius:8px">
+      <div style="font-weight:700;color:var(--text)">${r.nama}</div>
+      <div style="font-size:12px;color:var(--text3);margin-top:4px">
+        <strong>Invoice:</strong> ${r.invoice} | <strong>Paket:</strong> ${r.paket}
+      </div>
+      <div style="font-size:12px;color:var(--text3);margin-top:4px">
+        <strong>Tgl Registrasi:</strong> ${r.tglReg} | <strong>Expired:</strong> ${r.tglAktif}
+      </div>
+      <div style="font-size:12px;font-weight:700;color:var(--success);margin-top:4px">
+        ✅ Aktif (${sisa} hari lagi)
+      </div>
+      ${r.catatan?`<div style="font-size:12px;color:var(--text3);margin-top:4px;font-style:italic">📝 ${r.catatan}</div>`:''}
+    </div>
+  `).join(''):'<div style="text-align:center;color:var(--text3);padding:20px">Tidak ada registrasi yang aktif</div>';
+  document.getElementById('history-aktif').innerHTML=aktifHTML;
 }
 
 
