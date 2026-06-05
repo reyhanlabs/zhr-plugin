@@ -1927,6 +1927,19 @@ async function editRow(id){
 }
 
 // ========== UI FUNCTIONS ==========
+function showPage(id, title){
+  console.log('Switching to page:', id);
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  const page=document.getElementById('page-'+id);
+  if(!page){
+    console.error('Page not found:', 'page-'+id);
+    return;
+  }
+  page.classList.add('active');
+  document.getElementById('page-title').textContent=title;
+  document.getElementById('page-sub').textContent='';
+}
+
 function navigateTo(pageId, pageTitle){
   showPage(pageId, pageTitle);
   // Update active menu
