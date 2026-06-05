@@ -720,44 +720,37 @@ tbody tr:hover{background:var(--surface2)}
     
     <nav style="flex:1;overflow-y:auto;padding:12px 0">
       <div class="nav-section-label">Menu Utama</div>
-      <div class="nav-item active" onclick="showPage('dashboard','Dashboard'); this.parentElement.querySelectorAll('.nav-item').forEach(i=>i.classList.remove('active')); this.classList.add('active');">
+      <div class="nav-item active" onclick="navigateTo('dashboard','Dashboard')">
         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
         <span class="nav-label">Dashboard</span>
-        <span class="nav-tooltip">Dashboard</span>
       </div>
-      <div class="nav-item" onclick="showPage('data','Data Registrasi'); this.parentElement.querySelectorAll('.nav-item').forEach(i=>i.classList.remove('active')); this.classList.add('active');">
+      <div class="nav-item" onclick="navigateTo('data','Data Registrasi')">
         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/></svg>
         <span class="nav-label">Data Registrasi</span>
-        <span class="nav-tooltip">Data Registrasi</span>
       </div>
-      <div class="nav-item" onclick="showPage('form','Tambah Data'); this.parentElement.querySelectorAll('.nav-item').forEach(i=>i.classList.remove('active')); this.classList.add('active');">
+      <div class="nav-item" onclick="navigateTo('form','Tambah Data')">
         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 4v16m8-8H4"/></svg>
         <span class="nav-label">Tambah Data</span>
-        <span class="nav-tooltip">Tambah Data</span>
       </div>
 
       <div class="nav-section-label" style="margin-top:20px">Laporan</div>
-      <div class="nav-item" onclick="showPage('komisi','Rekap Komisi'); this.parentElement.querySelectorAll('.nav-item').forEach(i=>i.classList.remove('active')); this.classList.add('active');">
+      <div class="nav-item" onclick="navigateTo('komisi','Rekap Komisi')">
         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
         <span class="nav-label">Rekap Komisi</span>
-        <span class="nav-tooltip">Rekap Komisi</span>
       </div>
-      <div class="nav-item" onclick="showPage('history','Riwayat Update'); this.parentElement.querySelectorAll('.nav-item').forEach(i=>i.classList.remove('active')); this.classList.add('active');">
+      <div class="nav-item" onclick="navigateTo('history','Riwayat Update')">
         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
         <span class="nav-label">Riwayat Update</span>
-        <span class="nav-tooltip">Riwayat Update</span>
       </div>
 
       <div class="nav-section-label" style="margin-top:20px">Info</div>
-      <div class="nav-item" onclick="showPage('sysinfo','Informasi Sistem'); this.parentElement.querySelectorAll('.nav-item').forEach(i=>i.classList.remove('active')); this.classList.add('active');">
+      <div class="nav-item" onclick="navigateTo('sysinfo','Informasi Sistem')">
         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
         <span class="nav-label">Informasi Sistem</span>
-        <span class="nav-tooltip">Informasi Sistem</span>
       </div>
-      <div class="nav-item" onclick="showPage('guide','Panduan Penggunaan'); this.parentElement.querySelectorAll('.nav-item').forEach(i=>i.classList.remove('active')); this.classList.add('active');">
+      <div class="nav-item" onclick="navigateTo('guide','Panduan Penggunaan')">
         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
         <span class="nav-label">Panduan</span>
-        <span class="nav-tooltip">Panduan Penggunaan</span>
       </div>
     </nav>
 
@@ -1934,22 +1927,10 @@ async function editRow(id){
 }
 
 // ========== UI FUNCTIONS ==========
-function showPage(id,title){
-  console.log('Switching to page:', id);
-  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
-  const page=document.getElementById('page-'+id);
-  if(!page){
-    console.error('Page not found:', 'page-'+id);
-    return;
-  }
-  page.classList.add('active');
-  document.getElementById('page-title').textContent=title;
-  document.getElementById('page-sub').textContent='';
-  
-  // Update active menu item
-  document.querySelectorAll('.nav-item').forEach(item=>{
-    item.classList.remove('active');
-  });
+function navigateTo(pageId, pageTitle){
+  showPage(pageId, pageTitle);
+  // Update active menu
+  document.querySelectorAll('.nav-item').forEach(item=>item.classList.remove('active'));
   event.target.closest('.nav-item')?.classList.add('active');
 }
 
