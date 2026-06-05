@@ -1015,28 +1015,312 @@ tbody tr:hover{background:var(--surface2)}
 
       <!-- PAGE: GUIDE -->
       <div id="page-guide" class="page">
-        <div class="card">
-          <div class="card-header">
-            <h2>📖 Panduan Penggunaan</h2>
-          </div>
-          <div class="card-body" style="max-height:600px;overflow-y:auto">
-            <div style="line-height:1.8;color:var(--text2);font-size:13px">
-              <h3 style="margin:20px 0 10px;color:var(--text);font-weight:700">📋 Data Registrasi</h3>
-              <p style="margin-bottom:15px">Kelola semua registrasi plugin transaksi customer. Anda dapat melihat status, mencari, dan memfilter berdasarkan paket atau tanggal.</p>
+        <div style="display:grid;gap:20px">
 
-              <h3 style="margin:20px 0 10px;color:var(--text);font-weight:700">➕ Tambah Registrasi</h3>
-              <p style="margin-bottom:15px">Gunakan form untuk menambah registrasi baru. Isi semua field yang diperlukan (ditandai *) untuk menyimpan data.</p>
-
-              <h3 style="margin:20px 0 10px;color:var(--text);font-weight:700">💰 Rekap Komisi</h3>
-              <p style="margin-bottom:15px">Lihat ringkasan komisi dari semua registrasi. Gunakan tombol Cetak untuk mencetak laporan.</p>
-
-              <h3 style="margin:20px 0 10px;color:var(--text);font-weight:700">⏱️ Riwayat Update</h3>
-              <p style="margin-bottom:15px">Lihat semua perubahan data dan aktivitas pengguna untuk audit trail dan tracking perubahan.</p>
-
-              <h3 style="margin:20px 0 10px;color:var(--text);font-weight:700">📤 Import/Export</h3>
-              <p>Gunakan fitur import untuk mengunggah data dari Excel/CSV. Gunakan export untuk menyimpan data dalam format CSV.</p>
+          <!-- QUICK START -->
+          <div class="card animated-bg">
+            <div class="card-header">
+              <h2>🚀 Quick Start</h2>
+            </div>
+            <div class="card-body">
+              <div style="display:grid;gap:12px;line-height:1.8;color:var(--text2);font-size:13px">
+                <div style="padding:12px;background:var(--primary-light);border-left:4px solid var(--primary);border-radius:8px">
+                  <strong style="color:var(--text)">1️⃣ Login</strong><br>
+                  Gunakan Google untuk login ke aplikasi. Hanya pengguna yang terdaftar yang dapat mengakses.
+                </div>
+                <div style="padding:12px;background:var(--success-bg);border-left:4px solid var(--success);border-radius:8px">
+                  <strong style="color:var(--text)">2️⃣ Dashboard</strong><br>
+                  Lihat statistik real-time, quick actions, dan upcoming expiry di halaman utama.
+                </div>
+                <div style="padding:12px;background:var(--warn-bg);border-left:4px solid var(--warn);border-radius:8px">
+                  <strong style="color:var(--text)">3️⃣ Tambah/Kelola Data</strong><br>
+                  Gunakan menu untuk tambah registrasi baru atau edit data yang sudah ada.
+                </div>
+                <div style="padding:12px;background:rgba(79,172,254,.1);border-left:4px solid #4facfe;border-radius:8px">
+                  <strong style="color:var(--text)">4️⃣ Export/Import</strong><br>
+                  Kelola data dalam format CSV atau Excel untuk backup dan sharing.
+                </div>
+              </div>
             </div>
           </div>
+
+          <!-- DASHBOARD FEATURES -->
+          <div class="card">
+            <div class="card-header">
+              <h2>📊 Dashboard - Halaman Utama</h2>
+            </div>
+            <div class="card-body" style="line-height:1.8;color:var(--text2);font-size:13px">
+              <h3 style="margin:0 0 15px;color:var(--text);font-weight:700">⚡ Quick Actions</h3>
+              <p style="margin-bottom:15px">Empat tombol pintas di bagian atas dashboard untuk akses cepat:</p>
+              <div style="display:grid;gap:10px;margin-bottom:20px">
+                <div style="padding:10px;background:var(--surface2);border-radius:8px">
+                  <strong style="color:var(--primary)">➕ Tambah Registrasi</strong> - Langsung ke form input data baru
+                </div>
+                <div style="padding:10px;background:var(--surface2);border-radius:8px">
+                  <strong style="color:var(--primary)">👤 Kelola User</strong> - Buka modal untuk manajemen user (admin saja)
+                </div>
+                <div style="padding:10px;background:var(--surface2);border-radius:8px">
+                  <strong style="color:var(--primary)">📥 Export CSV</strong> - Download semua data dalam format CSV
+                </div>
+                <div style="padding:10px;background:var(--surface2);border-radius:8px">
+                  <strong style="color:var(--primary)">📤 Import Excel</strong> - Upload data dari file Excel/CSV (admin saja)
+                </div>
+              </div>
+
+              <h3 style="margin:20px 0 15px;color:var(--text);font-weight:700">📈 Highlight Cards</h3>
+              <p style="margin-bottom:10px">Tiga kartu statistik penting menampilkan:</p>
+              <div style="display:grid;gap:10px">
+                <div style="padding:10px;background:var(--surface2);border-radius:8px">
+                  <strong>📊 Total Registrasi</strong> - Jumlah keseluruhan data yang terdaftar dalam sistem
+                </div>
+                <div style="padding:10px;background:var(--surface2);border-radius:8px">
+                  <strong>✅ Status Aktif</strong> - Berapa banyak registrasi yang masih berlaku sampai sekarang
+                </div>
+                <div style="padding:10px;background:var(--surface2);border-radius:8px">
+                  <strong>⏰ Akan Expired</strong> - Registrasi yang akan kadaluarsa dalam 30 hari ke depan
+                </div>
+              </div>
+
+              <h3 style="margin:20px 0 15px;color:var(--text);font-weight:700">📦 Distribusi Paket</h3>
+              <p style="margin-bottom:10px">Breakdown visual dari setiap paket plugin yang digunakan:</p>
+              <p style="color:var(--text3)">Menampilkan total registrasi per paket: Starter, Professional, dan Enterprise. Update otomatis saat data berubah.</p>
+
+              <h3 style="margin:20px 0 15px;color:var(--text);font-weight:700">🔔 Upcoming Expiry</h3>
+              <p style="margin-bottom:10px">Fitur smart alert untuk registrasi yang akan expired:</p>
+              <div style="padding:12px;background:var(--warn-bg);border-radius:8px;margin-bottom:10px">
+                ⚠️ Menampilkan maksimal 5 registrasi paling urgent yang akan expired dalam 30 hari
+              </div>
+              <p style="color:var(--text3)">Setiap kartu menunjukkan nama perusahaan, tanggal expired, dan sisa hari dalam format countdown. Klik untuk edit.</p>
+            </div>
+          </div>
+
+          <!-- DATA REGISTRASI -->
+          <div class="card">
+            <div class="card-header">
+              <h2>📋 Data Registrasi</h2>
+            </div>
+            <div class="card-body" style="line-height:1.8;color:var(--text2);font-size:13px">
+              <h3 style="margin:0 0 15px;color:var(--text);font-weight:700">Searching & Filtering</h3>
+              <p style="margin-bottom:15px">Di bagian atas tabel tersedia:</p>
+              <div style="display:grid;gap:10px;margin-bottom:20px">
+                <div style="padding:10px;background:var(--surface2);border-radius:8px">
+                  <strong>🔍 Search Box</strong> - Ketik untuk cari berdasarkan nama perusahaan, invoice, atau paket
+                </div>
+                <div style="padding:10px;background:var(--surface2);border-radius:8px">
+                  <strong>Filter Status</strong> - Pilih "Aktif" atau "Kadaluarsa" untuk filter berdasarkan status
+                </div>
+              </div>
+
+              <h3 style="margin:20px 0 15px;color:var(--text);font-weight:700">Status Badges</h3>
+              <p style="margin-bottom:10px">Setiap registrasi memiliki status badge dengan warna berbeda:</p>
+              <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:15px">
+                <div style="padding:6px 12px;background:var(--success-bg);border-radius:6px;font-weight:600">
+                  <span style="color:var(--success)">✅ Aktif</span>
+                </div>
+                <div style="padding:6px 12px;background:var(--warn-bg);border-radius:6px;font-weight:600">
+                  <span style="color:var(--warn)">⏰ Akan Expired</span>
+                </div>
+                <div style="padding:6px 12px;background:var(--danger-bg);border-radius:6px;font-weight:600">
+                  <span style="color:var(--danger)">❌ Kadaluarsa</span>
+                </div>
+              </div>
+
+              <h3 style="margin:20px 0 15px;color:var(--text);font-weight:700">Action Buttons</h3>
+              <p style="margin-bottom:10px">Setiap row memiliki 2 tombol action:</p>
+              <div style="display:grid;gap:10px">
+                <div style="padding:10px;background:var(--surface2);border-radius:8px">
+                  <strong>✏️ Edit</strong> - Buka form untuk mengedit data registrasi yang dipilih
+                </div>
+                <div style="padding:10px;background:var(--surface2);border-radius:8px">
+                  <strong>🗑️ Hapus</strong> - Hapus data registrasi (confirm terlebih dahulu)
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- FORM INPUT -->
+          <div class="card">
+            <div class="card-header">
+              <h2>📝 Tambah/Edit Registrasi</h2>
+            </div>
+            <div class="card-body" style="line-height:1.8;color:var(--text2);font-size:13px">
+              <h3 style="margin:0 0 15px;color:var(--text);font-weight:700">Field-Field yang Harus Diisi</h3>
+              <div style="display:grid;gap:12px;margin-bottom:20px">
+                <div style="padding:10px;background:var(--surface2);border-radius:8px">
+                  <strong style="color:var(--text)">Nama Perusahaan <span style="color:var(--danger)">*</span></strong><br>
+                  <span style="font-size:12px">Nama lengkap perusahaan customer</span>
+                </div>
+                <div style="padding:10px;background:var(--surface2);border-radius:8px">
+                  <strong style="color:var(--text)">Invoice <span style="color:var(--danger)">*</span></strong><br>
+                  <span style="font-size:12px">Nomor invoice atau reference number</span>
+                </div>
+                <div style="padding:10px;background:var(--surface2);border-radius:8px">
+                  <strong style="color:var(--text)">Paket Plugin <span style="color:var(--danger)">*</span></strong><br>
+                  <span style="font-size:12px">Pilih: Starter, Professional, atau Enterprise</span>
+                </div>
+                <div style="padding:10px;background:var(--surface2);border-radius:8px">
+                  <strong style="color:var(--text)">Tipe Registrasi <span style="color:var(--danger)">*</span></strong><br>
+                  <span style="font-size:12px">Pilih: Komersial, Internal, atau Trial</span>
+                </div>
+                <div style="padding:10px;background:var(--surface2);border-radius:8px">
+                  <strong style="color:var(--text)">Tgl Registrasi <span style="color:var(--danger)">*</span></strong><br>
+                  <span style="font-size:12px">Tanggal saat registrasi dilakukan</span>
+                </div>
+                <div style="padding:10px;background:var(--surface2);border-radius:8px">
+                  <strong style="color:var(--text)">Tgl Aktif Hingga <span style="color:var(--danger)">*</span></strong><br>
+                  <span style="font-size:12px">Tanggal registrasi akan kadaluarsa</span>
+                </div>
+                <div style="padding:10px;background:var(--surface2);border-radius:8px">
+                  <strong style="color:var(--text)">Catatan</strong><br>
+                  <span style="font-size:12px">Keterangan tambahan atau notes penting (opsional)</span>
+                </div>
+              </div>
+
+              <h3 style="margin:20px 0 15px;color:var(--text);font-weight:700">Tips Penggunaan</h3>
+              <div style="padding:12px;background:var(--primary-light);border-left:4px solid var(--primary);border-radius:8px">
+                <p style="margin:0 0 8px;font-weight:600;color:var(--text)">💡 Tips Mengisi Form:</p>
+                <ul style="margin:0;padding-left:20px;color:var(--text2)">
+                  <li style="margin-bottom:4px">Field dengan * (bintang merah) harus diisi</li>
+                  <li style="margin-bottom:4px">Fokus pada input akan menampilkan highlight biru</li>
+                  <li style="margin-bottom:4px">Gunakan tombol "Reset" untuk membersihkan form</li>
+                  <li>Klik "Simpan Data" setelah mengisi semua field</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <!-- LAPORAN -->
+          <div class="card">
+            <div class="card-header">
+              <h2>💰 Rekap Komisi & Laporan</h2>
+            </div>
+            <div class="card-body" style="line-height:1.8;color:var(--text2);font-size:13px">
+              <h3 style="margin:0 0 15px;color:var(--text);font-weight:700">Rekap Komisi</h3>
+              <p style="margin-bottom:15px">Menampilkan ringkasan komisi dari semua registrasi dalam bentuk tabel yang rapi. Gunakan tombol <strong>Cetak</strong> untuk mencetak laporan ke printer atau PDF.</p>
+
+              <h3 style="margin:20px 0 15px;color:var(--text);font-weight:700">Riwayat Update</h3>
+              <p style="margin-bottom:15px">Lihat log semua perubahan data dan aktivitas pengguna. Berguna untuk audit trail dan tracking perubahan historis.</p>
+
+              <h3 style="margin:20px 0 15px;color:var(--text);font-weight:700">Export/Import</h3>
+              <div style="display:grid;gap:10px">
+                <div style="padding:10px;background:var(--surface2);border-radius:8px">
+                  <strong>📥 Export CSV</strong> - Download semua data dalam format CSV yang bisa dibuka di Excel
+                </div>
+                <div style="padding:10px;background:var(--surface2);border-radius:8px">
+                  <strong>📤 Import Excel</strong> - Upload data dari file Excel/CSV (hanya untuk admin)
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- PENGATURAN -->
+          <div class="card">
+            <div class="card-header">
+              <h2>⚙️ Pengaturan & Fitur Lainnya</h2>
+            </div>
+            <div class="card-body" style="line-height:1.8;color:var(--text2);font-size:13px">
+              <h3 style="margin:0 0 15px;color:var(--text);font-weight:700">🌙 Dark Mode</h3>
+              <p style="margin-bottom:15px">Klik tombol moon/sun di top-right untuk toggle antara light dan dark mode. Preferensi disimpan otomatis.</p>
+
+              <h3 style="margin:20px 0 15px;color:var(--text);font-weight:700">📱 Responsive Design</h3>
+              <p style="margin-bottom:15px">Aplikasi bekerja sempurna di semua ukuran layar: desktop, tablet, dan mobile. Layout otomatis menyesuaikan.</p>
+
+              <h3 style="margin:20px 0 15px;color:var(--text);font-weight:700">🔐 Keamanan</h3>
+              <div style="display:grid;gap:10px">
+                <div style="padding:10px;background:var(--surface2);border-radius:8px">
+                  <strong>Role-Based Access</strong> - Admin dan User memiliki akses berbeda
+                </div>
+                <div style="padding:10px;background:var(--surface2);border-radius:8px">
+                  <strong>Google Authentication</strong> - Login aman dengan akun Google
+                </div>
+                <div style="padding:10px;background:var(--surface2);border-radius:8px">
+                  <strong>Firebase Security</strong> - Data terenkripsi dalam transit
+                </div>
+              </div>
+
+              <h3 style="margin:20px 0 15px;color:var(--text);font-weight:700">📊 Informasi Sistem</h3>
+              <p style="margin-bottom:10px">Menu "Informasi Sistem" menampilkan:</p>
+              <div style="display:grid;gap:8px">
+                <span>• Project ID</span>
+                <span>• User yang login sekarang</span>
+                <span>• Email user</span>
+                <span>• Role (Admin/User)</span>
+                <span>• Total data registrasi</span>
+                <span>• Versi aplikasi</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- KEYBOARD SHORTCUTS -->
+          <div class="card">
+            <div class="card-header">
+              <h2>⌨️ Keyboard Shortcuts</h2>
+            </div>
+            <div class="card-body" style="line-height:1.8;color:var(--text2);font-size:13px">
+              <div style="display:grid;gap:10px">
+                <div style="padding:10px;background:var(--surface2);border-radius:8px;display:flex;justify-content:space-between">
+                  <strong>ESC</strong>
+                  <span>Tutup modal/dialog yang terbuka</span>
+                </div>
+                <div style="padding:10px;background:var(--surface2);border-radius:8px;display:flex;justify-content:space-between">
+                  <strong>Tab</strong>
+                  <span>Navigasi antar field dalam form</span>
+                </div>
+                <div style="padding:10px;background:var(--surface2);border-radius:8px;display:flex;justify-content:space-between">
+                  <strong>Enter</strong>
+                  <span>Submit form atau konfirmasi action</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- FAQ -->
+          <div class="card">
+            <div class="card-header">
+              <h2>❓ FAQ - Pertanyaan Umum</h2>
+            </div>
+            <div class="card-body" style="line-height:1.8;color:var(--text2);font-size:13px">
+              <h3 style="margin:0 0 10px;color:var(--text);font-weight:700">Q: Bagaimana cara menghapus data?</h3>
+              <p style="margin-bottom:20px">A: Klik tombol "Hapus" di baris data, sistem akan meminta konfirmasi sebelum menghapus.</p>
+
+              <h3 style="margin:0 0 10px;color:var(--text);font-weight:700">Q: Bagaimana cara export data?</h3>
+              <p style="margin-bottom:20px">A: Klik tombol "Export CSV" di quick actions atau menu Informasi Sistem untuk download data.</p>
+
+              <h3 style="margin:0 0 10px;color:var(--text);font-weight:700">Q: Siapa yang bisa import data?</h3>
+              <p style="margin-bottom:20px">A: Hanya admin yang memiliki akses untuk import data dari Excel/CSV.</p>
+
+              <h3 style="margin:0 0 10px;color:var(--text);font-weight:700">Q: Bagaimana jika lupa password?</h3>
+              <p style="margin-bottom:20px">A: Gunakan fitur "Forgot Password" di Google atau hubungi administrator sistem.</p>
+
+              <h3 style="margin:0 0 10px;color:var(--text);font-weight:700">Q: Berapa lama data disimpan?</h3>
+              <p style="margin-bottom:20px">A: Data disimpan di Firebase cloud secara permanent sampai dihapus manual.</p>
+
+              <h3 style="margin:0 0 10px;color:var(--text);font-weight:700">Q: Bisa backup data?</h3>
+              <p>A: Ya, gunakan fitur "Export CSV" untuk membuat backup data secara berkala.</p>
+            </div>
+          </div>
+
+          <!-- SUPPORT -->
+          <div class="card" style="background:linear-gradient(135deg,rgba(102,126,234,.05) 0%,rgba(118,75,162,.05) 100%)">
+            <div class="card-header">
+              <h2>📧 Bantuan & Dukungan</h2>
+            </div>
+            <div class="card-body" style="line-height:1.8;color:var(--text2);font-size:13px">
+              <p style="margin-bottom:15px">Jika mengalami kendala atau memiliki pertanyaan tentang penggunaan aplikasi:</p>
+              <div style="padding:12px;background:var(--surface);border-radius:8px;margin-bottom:15px">
+                <strong style="color:var(--text)">📧 Email Support:</strong><br>
+                <span style="color:var(--primary);font-family:monospace">datazahir@gmail.com</span>
+              </div>
+              <p style="margin-bottom:10px;font-weight:600;color:var(--text)">Sertakan dalam email:</p>
+              <ul style="margin:0;padding-left:20px">
+                <li style="margin-bottom:5px">Deskripsi masalah yang dihadapi</li>
+                <li style="margin-bottom:5px">Screenshot (jika diperlukan)</li>
+                <li style="margin-bottom:5px">Langkah-langkah untuk reproduce masalah</li>
+                <li>Browser dan versi yang digunakan</li>
+              </ul>
+            </div>
+          </div>
+
         </div>
       </div>
 
