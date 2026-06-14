@@ -844,11 +844,16 @@ mark.sh{background:#fef08a;color:#713f12;border-radius:2px;padding:0 1px}
         .guide-card-badge{font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;background:var(--primary-light);color:var(--primary)}
         .guide-card-badge.admin{background:#fef3c7;color:#d97706}
         .guide-card-chevron{transition:transform .25s;color:var(--text3)}
-        .guide-card-body{padding:18px;display:block;color:var(--text);background:var(--surface)}
-        .guide-card-body > *{color:var(--text)}
-        .guide-card-body p, .guide-card-body ul, .guide-card-body ol, .guide-card-body li, .guide-card-body strong, .guide-card-body em, .guide-card-body span, .guide-card-body div{color:var(--text)}
-        .guide-card-body a{color:var(--primary);text-decoration:none}
+        .guide-card-body{padding:18px;display:block;color:var(--text) !important;background:var(--surface)}
+        .guide-card-body *{color:var(--text) !important}
+        .guide-card-body p{color:var(--text) !important}
+        .guide-card-body ul, .guide-card-body ol{color:var(--text) !important}
+        .guide-card-body li{color:var(--text) !important}
+        .guide-card-body strong, .guide-card-body em, .guide-card-body span{color:var(--text) !important}
+        .guide-card-body a{color:var(--primary) !important;text-decoration:none}
         .guide-card-body a:hover{text-decoration:underline}
+        .guide-card-body .guide-step-title{color:var(--text) !important}
+        .guide-card-body .guide-step-desc{color:var(--text2) !important}
         .guide-card.collapsed .guide-card-body{display:none}
         .guide-card.collapsed .guide-card-chevron{transform:rotate(-90deg)}
 
