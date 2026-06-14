@@ -833,8 +833,8 @@ mark.sh{background:#fef08a;color:#713f12;border-radius:2px;padding:0 1px}
         .guide-tab:hover{border-color:var(--primary);color:var(--primary)}
         .guide-tab.active{background:var(--primary);color:#fff;border-color:var(--primary)}
 
-        .guide-section{display:none}
-        .guide-section.active{display:block}
+        .guide-section{display:none;color:var(--text)}
+        .guide-section.active{display:block;color:var(--text)}
 
         .guide-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;margin-bottom:16px;overflow:hidden;box-shadow:var(--shadow);color:var(--text)}
         .guide-card-header{padding:14px 18px;background:var(--surface2);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;cursor:pointer;user-select:none;color:var(--text)}
@@ -845,6 +845,10 @@ mark.sh{background:#fef08a;color:#713f12;border-radius:2px;padding:0 1px}
         .guide-card-badge.admin{background:#fef3c7;color:#d97706}
         .guide-card-chevron{transition:transform .25s;color:var(--text3)}
         .guide-card-body{padding:18px;display:block;color:var(--text);background:var(--surface)}
+        .guide-card-body > *{color:var(--text)}
+        .guide-card-body p, .guide-card-body ul, .guide-card-body ol, .guide-card-body li, .guide-card-body strong, .guide-card-body em, .guide-card-body span, .guide-card-body div{color:var(--text)}
+        .guide-card-body a{color:var(--primary);text-decoration:none}
+        .guide-card-body a:hover{text-decoration:underline}
         .guide-card.collapsed .guide-card-body{display:none}
         .guide-card.collapsed .guide-card-chevron{transform:rotate(-90deg)}
 
