@@ -103,17 +103,13 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 .card{background:linear-gradient(135deg, rgba(255,255,255,.95) 0%, rgba(248,247,255,.85) 100%);border:none;border-radius:14px;box-shadow:0 4px 14px rgba(99,102,241,.15);margin-bottom:20px;transition:all .2s;border-left:4px solid #6366f1;backdrop-filter:blur(10px)}
 .card:hover{box-shadow:0 8px 28px rgba(99,102,241,.25);transform:translateY(-2px)}
 
-/* Colorful card backgrounds - Bright colors only, no dark or red/orange */
-.card:nth-child(1){background:linear-gradient(135deg, rgba(99,102,241,.12), rgba(129,140,248,.12));border-left-color:#6366f1;box-shadow:0 4px 14px rgba(99,102,241,.2)}
-.card:nth-child(2){background:linear-gradient(135deg, rgba(34,197,94,.12), rgba(74,222,128,.12));border-left-color:#22c55e;box-shadow:0 4px 14px rgba(34,197,94,.2)}
-.card:nth-child(3){background:linear-gradient(135deg, rgba(59,130,246,.12), rgba(96,165,250,.12));border-left-color:#3b82f6;box-shadow:0 4px 14px rgba(59,130,246,.2)}
-.card:nth-child(4){background:linear-gradient(135deg, rgba(168,85,247,.12), rgba(196,181,253,.12));border-left-color:#a855f7;box-shadow:0 4px 14px rgba(168,85,247,.2)}
-.card:nth-child(5){background:linear-gradient(135deg, rgba(249,115,22,.12), rgba(251,146,60,.12));border-left-color:#fb923c;box-shadow:0 4px 14px rgba(249,115,22,.2)}
-.card:nth-child(6){background:linear-gradient(135deg, rgba(6,182,212,.12), rgba(34,211,238,.12));border-left-color:#06b6d4;box-shadow:0 4px 14px rgba(6,182,212,.2)}
-.card:nth-child(7){background:linear-gradient(135deg, rgba(236,72,153,.12), rgba(244,114,182,.12));border-left-color:#ec4899;box-shadow:0 4px 14px rgba(236,72,153,.2)}
-.card:nth-child(8){background:linear-gradient(135deg, rgba(34,197,94,.12), rgba(134,239,172,.12));border-left-color:#10b981;box-shadow:0 4px 14px rgba(34,197,94,.2)}
-.card:nth-child(9){background:linear-gradient(135deg, rgba(59,130,246,.12), rgba(147,197,253,.12));border-left-color:#0ea5e9;box-shadow:0 4px 14px rgba(59,130,246,.2)}
-.card:nth-child(10){background:linear-gradient(135deg, rgba(168,85,247,.12), rgba(217,70,239,.12));border-left-color:#d946ef;box-shadow:0 4px 14px rgba(168,85,247,.2)}
+/* Grid-2 cards coloring */
+.grid-2:nth-of-type(1) .card:nth-child(1){background:linear-gradient(135deg, rgba(99,102,241,.12), rgba(129,140,248,.12));border-left-color:#6366f1;box-shadow:0 4px 14px rgba(99,102,241,.2)}
+.grid-2:nth-of-type(1) .card:nth-child(2){background:linear-gradient(135deg, rgba(34,197,94,.12), rgba(74,222,128,.12));border-left-color:#22c55e;box-shadow:0 4px 14px rgba(34,197,94,.2)}
+.grid-2:nth-of-type(2) .card:nth-child(1){background:linear-gradient(135deg, rgba(59,130,246,.12), rgba(96,165,250,.12));border-left-color:#3b82f6;box-shadow:0 4px 14px rgba(59,130,246,.2)}
+.grid-2:nth-of-type(2) .card:nth-child(2){background:linear-gradient(135deg, rgba(168,85,247,.12), rgba(196,181,253,.12));border-left-color:#a855f7;box-shadow:0 4px 14px rgba(168,85,247,.2)}
+.grid-2:nth-of-type(3) .card:nth-child(1){background:linear-gradient(135deg, rgba(6,182,212,.12), rgba(34,211,238,.12));border-left-color:#06b6d4;box-shadow:0 4px 14px rgba(6,182,212,.2)}
+.grid-2:nth-of-type(3) .card:nth-child(2){background:linear-gradient(135deg, rgba(236,72,153,.12), rgba(244,114,182,.12));border-left-color:#ec4899;box-shadow:0 4px 14px rgba(236,72,153,.2)}
 .card:nth-child(n+11){background:linear-gradient(135deg, rgba(99,102,241,.12), rgba(129,140,248,.12));border-left-color:#6366f1;box-shadow:0 4px 14px rgba(99,102,241,.2)}
 .card-header{padding:16px 18px;border-bottom:2px solid rgba(0,0,0,.1);display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;background:rgba(255,255,255,.4)}
 .card-header h2{font-size:14px;font-weight:700}
@@ -2678,10 +2674,10 @@ function renderDashboard(){
   const expiring=DB.filter(r=>getStatus(r.tglAktif)==='expiring').length;
   const expired=DB.filter(r=>getStatus(r.tglAktif)==='expired').length;
   document.getElementById('stat-grid').innerHTML=`
-    <div class="stat-card"><div class="stat-label">Total Registrasi</div><div class="stat-value" style="color:var(--primary)">${DB.length}</div><div class="stat-sub">Semua data plugin</div></div>
-    <div class="stat-card"><div class="stat-label">Status Aktif</div><div class="stat-value" style="color:var(--success)">${active}</div><div class="stat-sub">${Math.round(active/DB.length*100)}% dari total</div></div>
-    <div class="stat-card"><div class="stat-label">Segera Habis (≤30hr)</div><div class="stat-value" style="color:var(--warn)">${expiring}</div><div class="stat-sub">Perlu perpanjangan</div></div>
-    <div class="stat-card"><div class="stat-label">Kadaluarsa</div><div class="stat-value" style="color:var(--danger)">${expired}</div><div class="stat-sub">Plugin tidak aktif</div></div>`;
+    <div class="stat-card" style="background:linear-gradient(135deg, rgba(99,102,241,.08), rgba(129,140,248,.08));border-left-color:#6366f1"><div class="stat-label">Total Registrasi</div><div class="stat-value" style="color:var(--primary)">${DB.length}</div><div class="stat-sub">Semua data plugin</div></div>
+    <div class="stat-card" style="background:linear-gradient(135deg, rgba(34,197,94,.08), rgba(74,222,128,.08));border-left-color:#22c55e"><div class="stat-label">Status Aktif</div><div class="stat-value" style="color:var(--success)">${active}</div><div class="stat-sub">${Math.round(active/DB.length*100)}% dari total</div></div>
+    <div class="stat-card" style="background:linear-gradient(135deg, rgba(59,130,246,.08), rgba(96,165,250,.08));border-left-color:#3b82f6"><div class="stat-label">Segera Habis (≤30hr)</div><div class="stat-value" style="color:var(--warn)">${expiring}</div><div class="stat-sub">Perlu perpanjangan</div></div>
+    <div class="stat-card" style="background:linear-gradient(135deg, rgba(168,85,247,.08), rgba(196,181,253,.08));border-left-color:#a855f7"><div class="stat-label">Kadaluarsa</div><div class="stat-value" style="color:var(--danger)">${expired}</div><div class="stat-sub">Plugin tidak aktif</div></div>`;
 
   const paketCount={};
   DB.forEach(r=>{ (r.paket||'–').split(',').forEach(p=>{ const t=p.trim()||'–'; paketCount[t]=(paketCount[t]||0)+1; }); });
